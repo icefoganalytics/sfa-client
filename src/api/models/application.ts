@@ -171,7 +171,7 @@ export default interface Application_ {
   expenses?: Expense[]
   fundingRequests?: FundingRequest[]
   incomes?: Income[]
-  institutionCampus: InstitutionCampus
+  institutionCampus?: InstitutionCampus
   parentDependents?: ParentDependent[]
   primaryAddress?: PersonAddress
   program?: Program
