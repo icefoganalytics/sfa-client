@@ -134,7 +134,7 @@ applicationRouter.post(
   [body("studentId").notEmpty(), body("academicYear").notEmpty(), body("institutionId").notEmpty()],
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
-    let { studentId, academicYear, institutionId } = req.body;
+    let { studentId, academicYear, institutionId, classesStartDate } = req.body;
     /* let existing = await db("sfa.application")
       .where({ student_id: studentId, academic_year_id: academicYear, institution_campus_id: institutionId })
       .count("* as count")
@@ -144,6 +144,7 @@ applicationRouter.post(
       student_id: parseInt(studentId),
       academic_year_id: parseInt(academicYear),
       institution_campus_id: parseInt(institutionId),
+      classes_start_date: classesStartDate,
       program_division: 2,
       tuition_estimate_amount: 0,
       prestudy_accom_code: 1,
@@ -388,18 +389,23 @@ applicationRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, 
   res.status(404).send();
 });
 
-applicationRouter.get("/:id/required-documents", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
-  let { id } = req.params;
+applicationRouter.get(
+  "/:id/required-documents",
+  [param("id").notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    let { id } = req.params;
 
-  let application = await db("sfa.application").where({ id }).first();
+    let application = await db("sfa.application").where({ id }).first();
 
-  if (application) {
-    let docs = await documentationService.getRequiredDocumentsForApplication(parseInt(id), application);
-    return res.json({data: docs})
+    if (application) {
+      let docs = await documentationService.getRequiredDocumentsForApplication(parseInt(id), application);
+      return res.json({ data: docs });
+    }
+
+    res.status(404).send();
   }
-
-  res.status(404).send();
-});
+);
 
 applicationRouter.delete(
   "/:id",
@@ -597,28 +603,31 @@ applicationRouter.get("/:application_id/student/:student_id/files/:file_type", a
 });
 
 // downloads a document
-applicationRouter.get("/:application_id/student/:student_id/files_id/:object_key", async (req: Request, res: Response) => {
-  const { student_id, application_id, object_key } = req.params;
+applicationRouter.get(
+  "/:application_id/student/:student_id/files_id/:object_key",
+  async (req: Request, res: Response) => {
+    const { student_id, application_id, object_key } = req.params;
 
-  let fileReference = await documentService.getDocumentWithFile(object_key);
+    let fileReference = await documentService.getDocumentWithFile(object_key);
 
-  if (
-    fileReference &&
-    fileReference.student_id == parseInt(student_id) &&
-    fileReference.application_id == parseInt(application_id)
-  ) {
-    res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
-    res.set("Content-type", fileReference.mime_type);
-    return res.send(fileReference.file_contents);
+    if (
+      fileReference &&
+      fileReference.student_id == parseInt(student_id) &&
+      fileReference.application_id == parseInt(application_id)
+    ) {
+      res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+      res.set("Content-type", fileReference.mime_type);
+      return res.send(fileReference.file_contents);
+    }
+
+    res.status(404).send();
   }
-
-  res.status(404).send();
-});
+);
 
 // updates a document
 applicationRouter.put("/:application_id/student/:student_id/files/:object_key", async (req: Request, res: Response) => {
   const { student_id, application_id, object_key } = req.params;
-  let {upload_date, status, status_date, comment} = req.body
+  let { upload_date, status, status_date, comment } = req.body;
 
   let fileReference = await documentService.getDocument(object_key);
 
@@ -627,15 +636,14 @@ applicationRouter.put("/:application_id/student/:student_id/files/:object_key", 
     fileReference.student_id == parseInt(student_id) &&
     fileReference.application_id == parseInt(application_id)
   ) {
-    
-    await documentService.updateDocument(object_key, {upload_date, status, status_date, comment});
+    await documentService.updateDocument(object_key, { upload_date, status, status_date, comment });
     return res.json({ messages: [{ variant: "success", text: "Documentation Saved" }] });
   }
 
   res.status(404).send();
 });
 
-// uploads a file 
+// uploads a file
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {
   const { student_id, application_id } = req.params;
   const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, status } = req.body;
@@ -644,7 +652,7 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-     let newFile = await documentService.uploadApplicationDocument({
+      let newFile = await documentService.uploadApplicationDocument({
         email: req.user.email,
         student_id: parseInt(student_id.toString()),
         application_id: parseInt(application_id.toString()),
@@ -665,18 +673,20 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
   res.json({ error: "No files included in request" });
 });
 
+// deletes a file
+applicationRouter.delete(
+  "/:application_id/student/:student_id/files/:object_key",
+  async (req: Request, res: Response) => {
+    const { student_id, application_id, object_key } = req.params;
+    let fileRef = await documentService.getDocument(object_key);
 
-// deletes a file 
-applicationRouter.delete("/:application_id/student/:student_id/files/:object_key", async (req: Request, res: Response) => {
-  const { student_id, application_id, object_key } = req.params;
-  let fileRef = await documentService.getDocument(object_key);
+    if (fileRef) {
+      await documentService.removeDocument(object_key);
+    }
 
-  if (fileRef) {
-    await documentService.removeDocument(object_key);
+    res.status(200).send();
   }
-
-  res.status(200).send();
-});
+);
 
 // updates _met
 applicationRouter.post(

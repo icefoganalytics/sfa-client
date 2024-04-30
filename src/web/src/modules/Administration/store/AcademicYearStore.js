@@ -41,6 +41,13 @@ const actions = {
       return resp.data;
     });
   },
+
+  getContainingYear({ state }, input) {
+    if (input && state.academicYears && isArray(state.academicYears)) {
+      return state.academicYears.find((y) => moment.utc(input).isBetween(y.start_date, y.end_date, "day", "[]"));
+    }
+    return null;
+  },
 };
 
 function formatDate(input) {
