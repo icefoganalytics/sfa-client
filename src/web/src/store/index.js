@@ -92,6 +92,7 @@ import sfaScholarshipHarachStore from "../components/application/assessments/sto
 import sfaScholarshipHuskysStore from "../components/application/assessments/store/sfa-scholarship-huskys";
 // Administration Stores
 import reportsStore from "@/modules/Administration/store/ReportsStore";
+import academicYearStore from "@/modules/Administration/store/AcademicYearStore";
 
 import communicationStore from "./communicationStore";
 
@@ -618,6 +619,7 @@ export default new Vuex.Store({
     sfaScholarshipHuskysStore,
 
     reportsStore,
+    academicYearStore,
 
     communicationStore,
   },

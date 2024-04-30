@@ -23,4 +23,12 @@ export default [
       requiresAuth: true,
     },
   },
+  {
+    path: "/administration/academic-year",
+    name: "AcademicYear",
+    component: () => import("../views/AcademicYear.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];

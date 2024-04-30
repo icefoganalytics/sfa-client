@@ -6,7 +6,7 @@ import { routedTo } from "@/controllers/helpers";
 import FundingRequestsLettersController from "@/controllers/admin/funding-requests/funding-requests-letters-controller";
 import FundingRequestLettersController from "@/controllers/admin/funding-request-letters-controller";
 
-import { acadecicYearRouter } from "./academic-year-router";
+import { academicYearRouter } from "./academic-year-router";
 import { applicationRouter } from "./application-router";
 import { assessmentRouter } from "./assessment-router";
 import { institutionRouter } from "./institution-router";
@@ -82,7 +82,7 @@ export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
 
 adminRouter.use("/institution", institutionRouter);
-adminRouter.use("/academic-year", acadecicYearRouter);
+adminRouter.use("/academic-year", academicYearRouter);
 adminRouter.use("/application", applicationRouter);
 adminRouter.use("/funding-requests", pathFormatMiddleware);
 adminRouter.get(
