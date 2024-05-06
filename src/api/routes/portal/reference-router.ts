@@ -73,3 +73,7 @@ portalReferenceRouter.get("/agency", async (req: Request, res: Response) => {
 portalReferenceRouter.get("/expense-category", async (req: Request, res: Response) => {
   res.json({ data: await db.getExpenseCategories() });
 });
+
+portalReferenceRouter.get("/academic-year", async (req: Request, res: Response) => {
+  res.json({ data: await db.getAcademicYears() });
+});

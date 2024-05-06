@@ -6,16 +6,17 @@
         <div class="col-md-3">
           <div class="row">
             <div class="col-12 pr-md-0">
-              <v-select
+              <v-text-field
                 outlined
                 dense
                 background-color="white"
                 hide-details
+                readonly
                 label="Academic year"
                 :items="yearOptions"
-                v-model="application.academic_year_id"
-                @change="doSaveApp('academic_year_id', application.academic_year_id)"
-              ></v-select>
+                append-icon="mdi-lock"
+                :value="application.academic_year_id"
+              ></v-text-field>
             </div>
             <div class="col-md-8">
               <div class="row">
@@ -137,7 +138,6 @@
                 :value="countries.find((c) => c.id === selectedInstitution.address_country_id)?.description"
               ></v-text-field>
             </div>
-            <div class="col-md-1"></div>
             <div class="col-md-2">
               <v-text-field
                 disabled
@@ -160,7 +160,7 @@
                 :value="institutionLevels.find((i) => (i.id = selectedInstitution.institution_level_id))?.description"
               ></v-text-field>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               <v-text-field
                 disabled
                 outlined
@@ -203,7 +203,7 @@
             </div>
           </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-8">
           <div class="row">
             <div class="col-md-6 px-1">
               <v-select
@@ -250,6 +250,7 @@
             <div class="col-md-6 px-1">
               <v-switch
                 class="my-0"
+                hide-details
                 label="By correspondance"
                 v-model="application.is_correspondence"
                 @change="doSaveApp('is_correspondence', application.is_correspondence)"
@@ -287,6 +288,8 @@
                       classes_start_menu = false;
                     }
                   "
+                  :min="minStartDate"
+                  :max="maxStartDate"
                   @change="doSaveApp('classes_start_date', application.classes_start_date)"
                 ></v-date-picker>
               </v-menu>
@@ -328,21 +331,9 @@
               </v-menu>
             </div>
           </div>
-        </div>
-        <div class="col-md-3">
-          <div class="row justify-end">
-            <!--div class="col-md-9">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Study weeks"
-                v-model="application.study_weeks_count"
-                @change="doSaveApp('study_weeks_count', application.study_weeks_count)"
-              ></v-text-field>
-            </div-->
-          </div>
+          <v-alert type="warning" dense class="mt-4" v-if="totalDays > 365"
+            >There are {{ totalDays }} between the Class start date and Class end date</v-alert
+          >
         </div>
       </v-card-text>
     </v-card>
@@ -366,10 +357,12 @@ import axios from "axios";
 import moment from "moment";
 import validator from "@/validator";
 import { INSTITUTION_URL, APPLICATION_URL } from "@/urls";
-import { mapGetters } from "vuex";
+import { mapGetters, mapState, mapActions } from "vuex";
+import { isArray } from "lodash";
 
 export default {
   computed: {
+    ...mapState("academicYearStore", ["academicYears"]),
     ...mapGetters([
       "yearOptions",
       "countries",
@@ -392,27 +385,43 @@ export default {
       const finded = this.institutionOptions.find((i) => i.id === this.application.institution_campus_id);
       return finded ? finded : {};
     },
+
+    academicYear() {
+      if (this.application && this.application.academic_year_id && this.academicYears && isArray(this.academicYears)) {
+        return this.academicYears.find((a) => a.id == this.application.academic_year_id);
+      }
+
+      return null;
+    },
+
+    minStartDate() {
+      if (this.academicYear) {
+        return this.academicYear.start_date;
+      }
+    },
+    maxStartDate() {
+      if (this.academicYear) {
+        return this.academicYear.end_date;
+      }
+    },
+
+    totalDays() {
+      if (this.application && this.application.classes_start_date && this.application.classes_end_date) {
+        return moment(this.application.classes_end_date).diff(this.application.classes_start_date, "days");
+      }
+      return 0;
+    },
   },
   data: () => ({
     validate: {},
     institutionOptions: [],
 
-    programAreaOptions: [],
-    programTypeOptions: [],
-    programDivisionOptions: [],
-    attendanceOptions: ["Full time", "Part time"],
-
     classes_start_menu: null,
     classes_end_menu: null,
-
-    fall_classes_start: null,
-    winter_classes_end: null,
-    sharing_consent: false,
   }),
-  async created() {
+  async mounted() {
     this.validate = validator;
     this.loadInstitutions();
-    store.dispatch("setYearOptions");
     store.dispatch("setCountries");
     store.dispatch("setProvinces");
     store.dispatch("setCities");
@@ -422,8 +431,10 @@ export default {
     store.dispatch("setPrograms");
     store.dispatch("setProgramDivisions");
     store.dispatch("setAttendances");
+    await this.loadAcademicYears();
   },
   methods: {
+    ...mapActions("academicYearStore", ["loadAcademicYears"]),
     loadInstitutions() {
       axios
         .get(`${INSTITUTION_URL}`)
@@ -443,6 +454,7 @@ export default {
           console.log(err);
         });
     },
+
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
     },
@@ -450,7 +462,7 @@ export default {
     async showPDF(reqId) {
       try {
         let buf = await fetch(
-          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/76`
+          `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files/${reqId}`
         ).then((r) => r.arrayBuffer());
         const blob = new Blob([buf], { type: "application/pdf" });
         const blobURL = URL.createObjectURL(blob) || "";

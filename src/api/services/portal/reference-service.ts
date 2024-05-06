@@ -141,4 +141,11 @@ export class ReferenceService {
       .select(["id", "description", "notes", "is_required"])
       .orderByRaw("CASE WHEN description like 'Pre-Study%' THEN 0 ELSE 1 END, description");
   }
+
+  async getAcademicYears(): Promise<any[]> {
+    return db("academic_year")
+      .withSchema(schema)
+      .where({ status: "Open", is_open_in_portal: true })
+      .select(["id", "start_date", "end_date"]);
+  }
 }
