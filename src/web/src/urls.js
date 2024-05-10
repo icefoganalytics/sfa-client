@@ -92,5 +92,6 @@ export const CSG_THRESHOLD_URL = `${config.apiBaseUrl}/api/v2/admin/csg-threshol
 export const ADMIN_REPORT_URL = `${config.apiBaseUrl}/api/v2/admin/reporting`;
 
 export const YEA_IMPORT_URL = `${config.apiBaseUrl}/api/v2/admin/yea-import`;
+export const ADMIN_CATALOG_URL = `${config.apiBaseUrl}/api/v2/admin/catalog`;
 
 export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;

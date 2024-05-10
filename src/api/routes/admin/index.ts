@@ -77,6 +77,7 @@ import { cslRestrictedData } from "./csl-restricted-data-router";
 import ReportingController from "@/controllers/admin/reporting-controller";
 import { csgThresholdRouter } from "./csg-threshold-router";
 import { yeaImportRouter } from "./yea-import-router";
+import { catalogRouter } from "./catalog/catalog-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -180,3 +181,5 @@ adminRouter.use("/reporting/t4a/:tax_year", routedTo(ReportingController, "runT4
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);
 adminRouter.use("/yea-import", yeaImportRouter);
+
+adminRouter.use("/catalog", catalogRouter);

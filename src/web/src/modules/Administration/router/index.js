@@ -31,4 +31,12 @@ export default [
       requiresAuth: true,
     },
   },
+  {
+    path: "/administration/catalogs",
+    name: "Catalogs",
+    component: () => import("../views/Catalogs.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];
