@@ -264,7 +264,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
                 item.disbursed_amount =
                   (assessment.weekly_amount ?? 0) * v_weeks_before_issue + (assessment.travel_allowance ?? 0);
-                item.due_date = item.issue_date;
+                //item.due_date = item.issue_date;
                 item.tax_year = parseInt(item.due_date?.toString().slice(0, 4) || "0") || undefined;
               } else if (item?.due_date && item?.issue_date) {
                 //IF (:system.LAST_RECORD = 'TRUE') THEN
@@ -278,7 +278,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                 item.disbursed_amount = 0;
                 item.issue_date = undefined;
                 v_due_date = moment(v_due_date).add(14, "days");
-                item.due_date = v_due_date;
+                //item.due_date = v_due_date;
                 item.tax_year = parseInt(v_due_date?.toString().slice(0, 4) || "0") || undefined;
               }
 
