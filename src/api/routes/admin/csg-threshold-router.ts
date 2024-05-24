@@ -121,6 +121,8 @@ csgThresholdRouter.put(
     assessment = await repo.updateCalcs(assessment);
     let calced = await repo.loadExisting(assessment, fundingRequest.application_id);
 
+    if (!calced) return res.status(500).send("Error loading assessment");
+
     await db("sfa.assessment")
       .where({ id: assessment_id })
       .update({
@@ -179,6 +181,8 @@ csgThresholdRouter.post(
     let repo = new AssessmentCslftRepositoryV2(db);
     let loaded = await repo.loadExisting(assessment, fundingRequest.application_id);
 
+    if (!loaded) return res.status(500).send("Error loading assessment");
+
     let existingOveraward = student.pre_over_award_amount ?? 0;
     existingOveraward += Math.abs(loaded.net_amount);
 
@@ -205,6 +209,8 @@ csgThresholdRouter.post(
     let repo = new AssessmentCslftRepositoryV2(db);
     let loaded = await repo.loadExisting(assessment, fundingRequest.application_id);
 
+    if (!loaded) return res.status(500).send("Error loading assessment");
+
     let existingOveraward = student.pre_over_award_amount ?? 0;
     existingOveraward -= Math.abs(loaded.net_amount);
 
@@ -226,10 +232,14 @@ csgThresholdRouter.post(
     let repo = new AssessmentCslftRepositoryV2(db);
 
     let newAssessment = await repo.create(funding_request_id);
-    let inserted = await repo.insert(newAssessment);
-    let loaded = await repo.loadExisting(inserted, application_id);
+    if (newAssessment) {
+      let inserted = await repo.insert(newAssessment);
+      let loaded = await repo.loadExisting(inserted, application_id);
 
-    return res.status(200).json({ data: loaded });
+      return res.status(200).json({ data: loaded });
+    } else {
+      return res.status(500).send();
+    }
   }
 );
 
@@ -278,20 +288,25 @@ csgThresholdRouter.get(
       // if there aren't any yet, build a new one
       if (!assessment) {
         assessment = await repo.create(funding_request.id);
-        assessment = await repo.loadExisting(assessment, application_id);
-        delete (assessment as any).id;
-        return res.json({ data: { funding_request, assessment, disbursements: [] } });
+
+        if (assessment) {
+          assessment = await repo.loadExisting(assessment, application_id);
+          delete (assessment as any).id;
+          return res.json({ data: { funding_request, assessment, disbursements: [] } });
+        }
       } else {
         assessment = await repo.loadExisting(assessment, funding_request.application_id);
 
-        let disbursements = await db("sfa.disbursement")
-          .where({
-            funding_request_id: funding_request.id,
-            assessment_id: assessment.id,
-          })
-          .orderBy("issue_date")
-          .orderBy("id");
-        return res.json({ data: { funding_request, assessment, disbursements } });
+        if (assessment) {
+          let disbursements = await db("sfa.disbursement")
+            .where({
+              funding_request_id: funding_request.id,
+              assessment_id: assessment.id,
+            })
+            .orderBy("issue_date")
+            .orderBy("id");
+          return res.json({ data: { funding_request, assessment, disbursements } });
+        }
       }
     }
 
@@ -639,6 +654,8 @@ csgThresholdRouter.post(
           .join("sfa.disbursement", "funding_request.id", "disbursement.funding_request_id")
           .whereNull("disbursement.transaction_number")
           .orWhere("disbursement.transaction_number", "");
+
+        // this is moving to some other people's disbursements
 
         for (let cd of childDisbursements) {
           await db("sfa.disbursement").where({ id: cd.id }).update({ transaction_number });

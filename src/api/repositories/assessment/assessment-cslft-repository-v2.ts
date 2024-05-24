@@ -110,7 +110,7 @@ export class AssessmentCslftRepositoryV2 {
       .first();
   }
 
-  async create(fundingRequestId: number | string): Promise<CSLFTAssessmentBase> {
+  async create(fundingRequestId: number | string): Promise<CSLFTAssessmentBase | undefined> {
     await this.load(parseInt(`${fundingRequestId}`));
 
     /* if (ftLoan) csl_ft = Math.ceil(ftLoan.disbursed_amount);
@@ -120,21 +120,33 @@ export class AssessmentCslftRepositoryV2 {
   if (disSEGrant) csg_dse = Math.ceil(disSEGrant.disbursed_amount);
   if (topup) topup_fund = Math.ceil(topup.disbursed_amount); */
 
-    let assess = await this.calculateBase();
+    try {
+      let assess = await this.calculateBase();
+      assess.id = 9999999;
 
-    assess.id = 9999999;
-    await this.calculateCosts(assess);
-    await this.calculateContribution(assess);
-    await this.calculateParental(assess);
-    await this.calculateAward(assess);
-
-    return assess;
+      await this.calculateCosts(assess);
+      await this.calculateContribution(assess);
+      await this.calculateParental(assess);
+      await this.calculateAward(assess);
+      return assess;
+    } catch (error) {
+      console.log("ERROR CREATING:", error);
+      return undefined;
+    }
   }
 
-  async loadExisting(input: CSLFTAssessmentBase, applicationId: number | string): Promise<CSLFTAssessmentFull> {
-    await this.load(input.funding_request_id);
-    let full = await this.postLoad(input, applicationId);
-    return full;
+  async loadExisting(
+    input: CSLFTAssessmentBase,
+    applicationId: number | string
+  ): Promise<CSLFTAssessmentFull | undefined> {
+    try {
+      await this.load(input.funding_request_id);
+      let full = await this.postLoad(input, applicationId);
+      return full;
+    } catch (error) {
+      console.log("ERROR CREATING:", error);
+      return undefined;
+    }
   }
 
   async postLoad(base: CSLFTAssessmentBase, applicationId: number | string): Promise<CSLFTAssessmentFull> {
@@ -562,6 +574,7 @@ parent_contribution
         province_id: this.application.study_province_id,
       })
       .first();
+      
     this.livingAllowance = await this.db("sfa.student_living_allowance")
       .where({
         academic_year_id: this.application.academic_year_id,
@@ -992,6 +1005,10 @@ parent_contribution
   }
 
   determineCategoryId(cslClassification: number, accomodationCode: number): number {
+
+
+    console.log('FINDING CATE', cslClassification, accomodationCode)
+
     if (cslClassification == 1 && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SDH")?.id || -1;
     } else if (cslClassification == 1 && accomodationCode == 2) {
