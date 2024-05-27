@@ -120,7 +120,7 @@ export class DocumentationService {
       }
     }
 
-    returnDocs = returnDocs.filter((r) => r.meets_conditions == true);
+    returnDocs = returnDocs.filter((r) => r.meets_conditions == true || r.object_key);
     returnDocs = sortBy(returnDocs, ["description", "upload_date"]);
     return returnDocs;
   }
@@ -208,7 +208,7 @@ export class DocumentationService {
       }
     }
 
-    returnDocs = returnDocs.filter((r) => r.meets_conditions == true);
+    returnDocs = returnDocs.filter((r) => r.meets_conditions == true || r.object_key);
     returnDocs = sortBy(returnDocs, "description");
     return returnDocs;
   }
