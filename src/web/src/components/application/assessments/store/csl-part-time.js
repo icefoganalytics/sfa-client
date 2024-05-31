@@ -29,6 +29,8 @@ const getters = {
     return "Assessment";
   },
   allowance(state, getters) {
+    console.log("ALLOWANCE", state.application?.study_province_id, getters.studentCategory);
+
     return state.allowances?.find(
       (a) => a.province_id == state.application?.study_province_id && a.student_category_id == getters.studentCategory
     );
@@ -117,7 +119,8 @@ const getters = {
     let books = state.assessment?.books_supplies_cost;
     let ptrans = state.assessment?.p_trans_month * state.assessment?.study_months;
     let daycare =
-      Math.min(state.assessment?.day_care_allowable, state.assessment?.day_care_actual) * state.assessment?.study_months;
+      Math.min(state.assessment?.day_care_allowable, state.assessment?.day_care_actual) *
+      state.assessment?.study_months;
     let totalCosts = tuit + books + ptrans + daycare + dptrans;
 
     return totalCosts > contribution ? totalCosts - contribution : 0;
@@ -318,6 +321,8 @@ const actions = {
         assessment.period = assessment.study_months <= 4 ? "S" : "P";
 
         commit("SET_ASSESSMENT", assessment);
+
+        console.log("LOAD", assessment);
       }
 
       // child store initializers
@@ -397,6 +402,7 @@ const actions = {
       assessment.period = assessment.study_months <= 4 ? "S" : "P";
 
       commit("SET_ASSESSMENT", assessment);
+      console.log("RECALC", assessment);
       dispatch("save");
     });
   },
