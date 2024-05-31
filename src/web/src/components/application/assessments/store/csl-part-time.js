@@ -332,7 +332,7 @@ const actions = {
     });
   },
 
-  async recalculate({ state, dispatch, commit }) {
+  async recalculate({ state, dispatch, commit, getters }) {
     dispatch("loadCSLPTAssessment", state.fundingRequest.application_id).then(() => {
       let dependentCount = 0;
       let familySize = 1;
