@@ -42,7 +42,7 @@ export const DB_CONFIG = {
     database: DB_NAME,
     port: parseInt(DB_PORT),
   },
-  defaultSchema: DB_DEFAULT_SCHEMA || 'dbo',
+  defaultSchema: DB_DEFAULT_SCHEMA || "dbo",
 };
 
 export const MAIL_FROM = process.env.MAIL_FROM || "sfa@yukon.ca";
@@ -73,3 +73,5 @@ export const AWS_S3_CONFIG = {
 
 export const SENTRY_DSN = process.env.SENTRY_DSN || "";
 export const IMAGE_TAG = process.env.IMAGE_TAG || "";
+
+export const PDF_CONVERSION_URL = process.env.PDF_CONVERSION_URL || "";

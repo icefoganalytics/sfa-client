@@ -32,5 +32,10 @@ services:
       - 8081:8080
       - 8085:8085
 
+  converter:
+    image: ghcr.io/icefoganalytics/pdf-converter:v2024.6.6.1
+    ports:
+      - 5000:5000
+
 volumes:
   s3storage:

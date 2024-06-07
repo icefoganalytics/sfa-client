@@ -259,11 +259,15 @@ export class AssessmentCslftRepositoryV2 {
         input.parent_discretionary_income = Math.round(input.parent_net_income_total - input.parent_msol);
 
         if (input.parent_discretionary_income > 0) {
+          console.log("FIND IT", this.application.academic_year_id, input.parent_discretionary_income);
+
           let contribution = await this.db("sfa.parent_contribution_formula")
             .where({ academic_year_id: this.application.academic_year_id })
             .where("income_from_amount", ">=", input.parent_discretionary_income)
             .where("income_to_amount", "<=", input.parent_discretionary_income)
             .first();
+
+          console.log("CONRIB", contribution);
 
           input.parent_weekly_contrib =
             (contribution.add_amount +
@@ -574,7 +578,7 @@ parent_contribution
         province_id: this.application.study_province_id,
       })
       .first();
-      
+
     this.livingAllowance = await this.db("sfa.student_living_allowance")
       .where({
         academic_year_id: this.application.academic_year_id,
@@ -1005,9 +1009,7 @@ parent_contribution
   }
 
   determineCategoryId(cslClassification: number, accomodationCode: number): number {
-
-
-    console.log('FINDING CATE', cslClassification, accomodationCode)
+    console.log("FINDING CATE", cslClassification, accomodationCode);
 
     if (cslClassification == 1 && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SDH")?.id || -1;
