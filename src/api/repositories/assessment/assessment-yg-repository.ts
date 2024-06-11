@@ -3,7 +3,7 @@ import moment from "moment";
 import { AssessmentDTO, ApplicationDTO, DisbursementDTO } from "models";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
 import { ApplicationRepository } from "../application";
-import {  monthsBetween, weeksBetween } from "@/utils/date-utils";
+import { monthsBetween, weeksBetween } from "@/utils/date-utils";
 
 export class AssessmentYukonGrant extends AssessmentBaseRepository {
   private applicationRepo: ApplicationRepository;
@@ -35,7 +35,6 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         application_id,
       ])) ?? 0;
 
-
     if (assess.previous_weeks + assess.assessed_weeks > 170) {
       assess.weeks_allowed = 170 - assess.previous_weeks;
     } else {
@@ -57,6 +56,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         assess.home_city_id || 0,
         assess.destination_city_id || 0,
       ])) || 0;
+
+    if (this.application.is_correspondence) {
+      assess.travel_allowance = 0;
+      assess.airfare_amount = 0;
+    }
 
     const yg_cost_sel = this.mainDb("sfa.yg_cost").where({
       academic_year_id: this.application.academic_year_id,
@@ -92,7 +96,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
       assess.weekly_amount = yg_cost.weekly_amount || 0;
     }
 
-   /*  const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
+    /*  const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
       application_id,
       assessment_id || 0,
       "NULL",
@@ -108,10 +112,10 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
       disbursed_amt = disbursedAmounts.reduce((a, b) => a + b, 0);
     }
 
-     if (disbursed_amt) {
+    if (disbursed_amt) {
       assess.previous_disbursement = disbursed_amt;
 
-   /*    if (disburse_required > 0 && disburse_required < 1) {
+      /*    if (disburse_required > 0 && disburse_required < 1) {
         assess.disbursements_required = 1;
       } else {
         assess.disbursements_required = Math.floor(disburse_required);
@@ -119,7 +123,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
     } else {
       assess.previous_disbursement = 0;
       //assess.disbursements_required = Math.floor(disburse_required);
-    } 
+    }
 
     assess.over_award = 0;
     assess.assessment_adj_amount = 0;
@@ -192,6 +196,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
       assessment.home_city_id || 0,
       assessment.destination_city_id || 0,
     ]);
+
+    if (this.application.is_correspondence) {
+      assess.travel_allowance = 0;
+      assess.airfare_amount = 0;
+    }
 
     /* const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
       application_id,
