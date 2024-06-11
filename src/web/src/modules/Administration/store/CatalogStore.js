@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ADMIN_CATALOG_URL } from "@/urls";
+import { clone, cloneDeep, isArray } from "lodash";
 
 const state = {
   catalogOptions: [
@@ -98,9 +99,26 @@ const state = {
         { text: "max_amount", value: "max_amount" },
       ],
     },
+    {
+      text: "Parent Contribution",
+      url: `${ADMIN_CATALOG_URL}/parent_contribution`,
+      headers: [
+        { text: "id", value: "id" },
+        { text: "academic_year_id", value: "academic_year_id" },
+        { text: "income_from_amount", value: "income_from_amount" },
+        { text: "income_to_amount", value: "income_to_amount" },
+        { text: "add_amount", value: "add_amount" },
+        { text: "percentage", value: "percentage" },
+        { text: "subtract_amount", value: "subtract_amount" },
+        { text: "divide_by", value: "divide_by" },
+        { text: "province_id", value: "province_id" },
+        { text: "max_amount", value: "max_amount" },
+      ],
+    },
   ],
   selectedCatalog: undefined,
   selectedCatalogResults: undefined,
+  rateTables: undefined,
 };
 const getters = {};
 const mutations = {
@@ -114,10 +132,14 @@ const mutations = {
   SET_CATALOGRESULTS(state, value) {
     state.selectedCatalogResults = value;
   },
+  SET_RATETABLES(state, value) {
+    state.rateTables = value;
+  },
 };
 const actions = {
   async setCatalog({ commit, dispatch }, value) {
     commit("SET_SELECTEDCATALOG", value);
+    console.log("TESTINGING", value);
     dispatch("loadCatalog");
   },
   async loadCatalog({ commit, state }) {
@@ -130,6 +152,16 @@ const actions = {
         });
       }
     }
+  },
+  async loadRateTables({ commit }, academic_year_id) {
+    return axios.get(`${ADMIN_CATALOG_URL}/rate_tables/${academic_year_id}`).then((resp) => {
+      commit("SET_RATETABLES", resp.data.data);
+    });
+  },
+  async initializeRateTables({ commit }, academic_year_id) {
+    return axios.post(`${ADMIN_CATALOG_URL}/rate_tables/${academic_year_id}`).then((resp) => {
+      //commit("SET_RATETABLES", resp.data.data);
+    });
   },
   async saveCatalog({ commit, state, dispatch }, item) {
     if (state.selectedCatalog) {
@@ -167,6 +199,42 @@ const actions = {
     }
 
     return "Problem";
+  },
+  async saveRow({ commit, state, dispatch }, item) {
+    let url = `${ADMIN_CATALOG_URL}/${item.tableName}`;
+    const id = item.value.id;
+
+    let body = cloneDeep(item.value);
+    delete body.id;
+
+    if (isArray(body)) {
+      for (let row of body) {
+        const rowId = row.id;
+        delete row.id;
+
+        await axios
+          .put(`${url}/${rowId}`, row)
+          .then((resp) => {
+            return resp.data;
+          })
+          .catch((resp) => {
+            console.log("CATCH", resp.response.data);
+            return resp.response.data.data;
+          });
+      }
+
+      return Promise.resolve({ success: true });
+    } else {
+      return axios
+        .put(`${url}/${id}`, body)
+        .then((resp) => {
+          return resp.data;
+        })
+        .catch((resp) => {
+          console.log("CATCH", resp.response.data);
+          return resp.response.data.data;
+        });
+    }
   },
 };
 

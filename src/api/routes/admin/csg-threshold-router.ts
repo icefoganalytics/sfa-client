@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import knex from "knex";
 import { DB_CONFIG } from "../../config";
-import { conformsTo, isArray, sortBy, update } from "lodash";
+import { isArray, sortBy } from "lodash";
 import { param } from "express-validator";
 import { ReturnValidationErrors } from "@/middleware";
 import { cleanNumber, cleanNumberOptional } from "@/models";

@@ -32,6 +32,14 @@ export default [
     },
   },
   {
+    path: "/administration/rate-tables",
+    name: "AcademicYear",
+    component: () => import("../views/RateTables.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: "/administration/catalogs",
     name: "Catalogs",
     component: () => import("../views/Catalogs.vue"),

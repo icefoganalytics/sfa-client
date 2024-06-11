@@ -6,6 +6,9 @@ export class CatalogPolicy {
     standardOfLivingPolicy,
     studentLivingAllowancePolicy,
     childCareCeilingPolicy,
+    staLookupPolicy,
+    ygCostPolicy,
+    parentContributionPolicy,
   ];
 
   get(tableName: string) {
@@ -45,6 +48,24 @@ const studentLivingAllowancePolicy = {
 };
 const childCareCeilingPolicy = {
   tableName: "child_care_ceiling",
+  schema: "sfa",
+  readonly: false,
+  idColumn: "id",
+};
+const staLookupPolicy = {
+  tableName: "sta_lookup",
+  schema: "sfa",
+  readonly: false,
+  idColumn: "id",
+};
+const ygCostPolicy = {
+  tableName: "yg_cost",
+  schema: "sfa",
+  readonly: false,
+  idColumn: "id",
+};
+const parentContributionPolicy = {
+  tableName: "parent_contribution_formula",
   schema: "sfa",
   readonly: false,
   idColumn: "id",

@@ -123,6 +123,14 @@ ul.v-breadcrumbs {
   color: #9b1b27 !important;
 }
 
+.text-warning {
+  color: #fd7e14 !important;
+}
+
+.text-success {
+  color: #28a745 !important;
+}
+
 .on-top div {
   z-index: 2;
 }
