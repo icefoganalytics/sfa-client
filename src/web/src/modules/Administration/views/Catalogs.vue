@@ -81,7 +81,6 @@
       ><v-toolbar dark color="primary">
         <v-toolbar-title>Edit Item</v-toolbar-title>
         <v-spacer />
-
         <v-icon @click="showEditor = false">mdi-close</v-icon>
       </v-toolbar>
       <v-card v-if="selectedCatalog && selectedItem">

@@ -624,6 +624,28 @@ applicationRouter.get(
   }
 );
 
+// downloads a document pdf
+applicationRouter.get(
+  "/:application_id/student/:student_id/files_id_pdf/:object_key_pdf",
+  async (req: Request, res: Response) => {
+    const { student_id, application_id, object_key_pdf } = req.params;
+
+    let fileReference = await documentService.getPdfDocumentWithFile(object_key_pdf);
+
+    if (
+      fileReference &&
+      fileReference.student_id == parseInt(student_id) &&
+      fileReference.application_id == parseInt(application_id)
+    ) {
+      res.set("Content-disposition", "attachment; filename=" + `${fileReference.file_name}.pdf`);
+      res.set("Content-type", "application/pdf");
+      return res.send(fileReference.file_contents);
+    }
+
+    res.status(404).send();
+  }
+);
+
 // updates a document
 applicationRouter.put("/:application_id/student/:student_id/files/:object_key", async (req: Request, res: Response) => {
   const { student_id, application_id, object_key } = req.params;

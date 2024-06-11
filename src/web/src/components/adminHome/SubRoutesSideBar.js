@@ -21,6 +21,11 @@ export default {
         {title:"Countries", path: "/administration/countries"},
     ],
     
+    academicYears: [
+        {title:"Institutions", path: "/administration/academic-year"},
+        {title:"Rate Tables", path: "/administration/rate-tables"},
+    ],
+    
     institutions: [
         {title:"Institutions", path: "/administration/institutions"},
         {title:"CSL NSLSC Address Table", path: "/administration/csl-nslsc-address-table"},

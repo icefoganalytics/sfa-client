@@ -21,6 +21,14 @@
             <v-btn icon title="Download" v-if="item.file_name && item.upload_date" @click.stop="downloadItem(item)">
               <v-icon>mdi-download</v-icon>
             </v-btn>
+            <!-- <v-btn
+              icon
+              title="Download PDF"
+              v-if="item.file_name && item.upload_date"
+              @click.stop="downloadItemPdf(item)"
+            >
+              <v-icon>mdi-download</v-icon>
+            </v-btn> -->
             <v-btn icon v-else @click="startUploadItem(item)">
               <v-icon>mdi-upload</v-icon>
             </v-btn>
@@ -348,6 +356,12 @@ export default {
       window.open(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`);
     },
 
+    downloadItemPdf(item) {
+      window.open(
+        `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id_pdf/${item.object_key_pdf}`
+      );
+    },
+
     startUploadItem(item) {
       this.uploadDoc = {
         requirement_type_id: item.requirement_type_id,
@@ -411,7 +425,7 @@ export default {
         .then((resp) => {
           let message = resp.data.messages[0];
           this.$emit("showSuccess", message.text);
-          this.loadDocuments()
+          this.loadDocuments();
         });
     },
 

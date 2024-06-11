@@ -93,7 +93,13 @@ export default {
           path: "/administration/study-field",
           subItems: SubRoutesSideBar.application,
         },
-        { icon: "fa-solid fa-calendar-days", title: "Academic Years", path: "/administration/academic-year" },
+        {
+          icon: "fa-solid fa-calendar-days",
+          title: "Academic Years",
+          path: "/administration/academic-year",
+          subItems: SubRoutesSideBar.academicYears,
+        },
+
         { icon: "fa-solid fa-user", title: "Officer Table", path: "/administration/officers" },
         { icon: "fa-solid fa-file-import", title: "CSL MSFAA Receive", path: "/administration/csl-msfaa-receive" },
         {

@@ -14,8 +14,11 @@ import {
 import { FileReference, FileReferenceBase, FileStatus } from "../../models";
 import { S3Worker } from "../../utils/document-storage";
 import { clone } from "lodash";
+import { PdfConverterIntegration } from "./pdf-conversion-service";
 
 const db = knex(DB_CONFIG);
+
+const pdfConverter = new PdfConverterIntegration();
 
 export class DocumentService {
   readonly s3Helper: S3Worker;
@@ -100,6 +103,25 @@ export class DocumentService {
 
     if (docRef) {
       const response = await this.s3Helper.download(`${AWS_S3_PATH}/${docRef.object_key}`);
+
+      if (response.Body) {
+        docRef.file_name = docRef.file_name.replace(/,/g, ""); // this was causing problems with downloads
+
+        docRef.file_contents = response.Body; // = await streamToBuffer(response.Body as Readable);
+        return docRef;
+      }
+    }
+
+    return undefined;
+  }
+
+  //return the Document metadata and file
+  async getPdfDocumentWithFile(object_key_pdf: string): Promise<FileReference | undefined> {
+    // pull the
+    let docRef = await db<FileReference>("sfa.file_reference").where({ object_key_pdf }).first();
+
+    if (docRef) {
+      const response = await this.s3Helper.download(`${AWS_S3_PATH}/${docRef.object_key_pdf}`);
 
       if (response.Body) {
         docRef.file_name = docRef.file_name.replace(/,/g, ""); // this was causing problems with downloads
@@ -223,18 +245,14 @@ export class DocumentService {
         await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key}`, input.file_contents);
         // this feature is awaiting some sort of universal PDF conversion
         /* if (input.object_key_pdf) {
-      let pdf = await convertToPDF(input);
-      console.log("THING", pdf);
+          try {
+            let pdf = await pdfConverter.convertStream(input.file_contents);
 
-      let upload2Command = new PutObjectCommand({
-        Bucket: input.bucket,
-        Key: input.object_key_pdf,
-        Body: pdf,
-        ContentType: input.mime_type,
-      });
-
-      await this.client.send(upload2Command);
-    } */
+            await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key_pdf}`, pdf);
+          } catch (err) {
+            console.log("Failed to convert file to PDF", err);
+          }
+        } */
       })
       .catch((e) => {
         let i = clone(input) as any;
