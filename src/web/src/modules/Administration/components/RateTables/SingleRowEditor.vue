@@ -1,6 +1,7 @@
 <template>
-  <div>
-    <v-row class="mt-3 pb-5">
+  <div class="pt-4">
+    * Any fields marked in yellow are most likely obsolete
+    <v-row class="mt-0 pb-5">
       <v-col cols="6" v-for="header of relevantFields">
         <div v-if="header == 'id'">
           <v-text-field
@@ -49,7 +50,8 @@
           dense
           outlined
           hide-details
-          background-color="white"
+          :background-color="determineColor(header.text)"
+
         />
       </v-col>
     </v-row>
@@ -66,6 +68,16 @@ export default {
   props: ["selectedYear", "selectedItem", "tableName"],
   data: () => ({
     showMessage: "",
+    deprecatedFields: [
+      "effective_date",
+      "expiry_date",
+      "semester_living_amount",
+      "semester_tuition_amount",
+      "semester_book_amount",
+      "quarter_living_amount",
+      "quarter_tuition_amount",
+      "quarter_book_amount",
+    ],
   }),
   computed: {
     fields() {
@@ -95,6 +107,11 @@ export default {
           }, 3000);
         } else this.showMessage = resp;
       });
+    },
+    determineColor(text) {
+      if (this.deprecatedFields.includes(text)) return "warning lighten-3";
+
+      return "white";
     },
   },
 };
