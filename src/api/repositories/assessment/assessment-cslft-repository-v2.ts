@@ -269,12 +269,33 @@ export class AssessmentCslftRepositoryV2 {
 
           console.log("CONRIB", contribution);
 
-          input.parent_weekly_contrib =
-            (contribution.add_amount +
-              (input.parent_discretionary_income - contribution.subtract_amount) * (contribution.percentage / 100)) /
-            contribution.divide_by;
+          if (contribution) {
+            input.parent_weekly_contrib =
+              (contribution.add_amount +
+                (input.parent_discretionary_income - contribution.subtract_amount) * (contribution.percentage / 100)) /
+              contribution.divide_by;
 
-          input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
+            input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
+          } else {
+            console.log(
+              "Contribution Formula not found for ",
+              this.application.academic_year_id,
+              input.parent_discretionary_income
+            );
+
+            contribution = await this.db("sfa.parent_contribution_formula")
+              .where({ academic_year_id: this.application.academic_year_id })
+              .first();
+
+            input.parent_weekly_contrib =
+              (contribution.add_amount +
+                (input.parent_discretionary_income - contribution.subtract_amount) * (contribution.percentage / 100)) /
+              contribution.divide_by;
+
+            input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
+
+            console.log("INSTEAD USING BASIC: ", contribution);
+          }
         }
       }
     }
@@ -560,6 +581,8 @@ parent_contribution
       this.application.csl_classification,
       this.application.study_accom_code
     );
+
+    console.log("CAT IS", this.application.category_id);
   }
 
   async loadLookups() {
@@ -1010,6 +1033,10 @@ parent_contribution
 
   determineCategoryId(cslClassification: number, accomodationCode: number): number {
     console.log("FINDING CATE", cslClassification, accomodationCode);
+
+    cslClassification = 1;
+    accomodationCode = 2;
+    console.log("FINDING CATE22", cslClassification, accomodationCode);
 
     if (cslClassification == 1 && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SDH")?.id || -1;
