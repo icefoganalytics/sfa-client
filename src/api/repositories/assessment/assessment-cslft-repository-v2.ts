@@ -259,15 +259,11 @@ export class AssessmentCslftRepositoryV2 {
         input.parent_discretionary_income = Math.round(input.parent_net_income_total - input.parent_msol);
 
         if (input.parent_discretionary_income > 0) {
-          console.log("FIND IT", this.application.academic_year_id, input.parent_discretionary_income);
-
           let contribution = await this.db("sfa.parent_contribution_formula")
             .where({ academic_year_id: this.application.academic_year_id })
             .where("income_from_amount", ">=", input.parent_discretionary_income)
             .where("income_to_amount", "<=", input.parent_discretionary_income)
             .first();
-
-          console.log("CONRIB", contribution);
 
           if (contribution) {
             input.parent_weekly_contrib =
@@ -324,7 +320,7 @@ export class AssessmentCslftRepositoryV2 {
         } else {
           //input.student_previous_contribution = 0; // not sure what to do with this???
 
-          input.student_contrib_exempt_reason = "ExempltThis is a test";
+          input.student_contrib_exempt_reason = "";
           total_contribution += input.student_contribution + input.student_other_resources;
         }
       } else {
@@ -361,7 +357,7 @@ export class AssessmentCslftRepositoryV2 {
       input.spouse_contrib_exempt_reason = "Not Applicable";
 
       if (input.student_contrib_exempt == "NO") {
-        input.student_contrib_exempt_reason = "Not Exempt" + input.student_contrib_exempt;
+        input.student_contrib_exempt_reason = "Not Exempt";
 
         if (input.student_contribution_override) {
           total_contribution += input.student_contribution_override;
@@ -614,7 +610,7 @@ parent_contribution
   async calculateBase(): Promise<CSLFTAssessmentBase> {
     let assess = clone(DEFAULT_BASE);
 
-    assess.assessment_type_id = this.assessments.length > 1 ? 2 : 1;
+    assess.assessment_type_id = this.assessments.length > 0 ? 2 : 1;
     assess.funding_request_id = this.fundingRequest.id;
     assess.classes_start_date = this.application.classes_start_date;
     assess.classes_end_date = this.application.classes_end_date;
@@ -916,7 +912,8 @@ parent_contribution
     } else {
       const weekly_student_contrib =
         (this.cslLookup.low_income_student_contrib_amount ?? 0) / e_month +
-        ((family_income - income_threshold) / e_month) * (this.cslLookup.student_contrib_percent ?? 0);
+        ((family_income - income_threshold) / e_month) * ((this.cslLookup.student_contrib_percent ?? 0) / 100);
+
       const weekly_calc = weekly_student_contrib * Math.min(assess.study_weeks ?? 0, max_weeks) ?? 0;
       assess.student_expected_contribution = Math.min(weekly_calc, this.cslLookup.student_contrib_max_amount ?? 0);
     }
@@ -950,7 +947,8 @@ parent_contribution
     assess.student_contribution =
       assess.student_contrib_exempt === "YES"
         ? 0
-        : (assess.student_expected_contribution ?? 0) - assess.student_previous_contribution + student_other_resources;
+        : (assess.student_expected_contribution ?? 0) /* - assess.student_previous_contribution */ +
+          student_other_resources;
 
     // if spouse is not employed or full time student
     if (this.application.spouse_study_emp_status_id != 4 || this.spouseIsFullTimeStudent())
@@ -961,7 +959,8 @@ parent_contribution
 
     if (assess.csl_classification == 3 && family_income > income_threshold) {
       const weekly_spouse_contrib =
-        this.cslLookup.spouse_contrib_percent * ((family_income - income_threshold) / e_month);
+        (this.cslLookup.spouse_contrib_percent / 100) * ((family_income - income_threshold) / e_month);
+
       assess.spouse_expected_contribution = Math.round(
         weekly_spouse_contrib * Math.min(assess.study_weeks ?? 0, max_weeks)
       );
@@ -969,7 +968,7 @@ parent_contribution
       assess.spouse_contribution =
         assess.spouse_contrib_exempt === "YES"
           ? 0
-          : Math.round((assess.spouse_expected_contribution ?? 0) - assess.spouse_previous_contribution);
+          : Math.round(assess.spouse_expected_contribution ?? 0 /* - assess.spouse_previous_contribution */);
     } else {
       assess.spouse_expected_contribution = 0;
       assess.spouse_previous_contribution = 0;
@@ -1032,11 +1031,8 @@ parent_contribution
   }
 
   determineCategoryId(cslClassification: number, accomodationCode: number): number {
-    console.log("FINDING CATE", cslClassification, accomodationCode);
-
     cslClassification = 1;
     accomodationCode = 2;
-    console.log("FINDING CATE22", cslClassification, accomodationCode);
 
     if (cslClassification == 1 && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SDH")?.id || -1;
