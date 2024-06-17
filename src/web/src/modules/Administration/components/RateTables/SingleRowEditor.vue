@@ -51,7 +51,8 @@
           outlined
           hide-details
           :background-color="determineColor(header.text)"
-
+          :readonly="determineColor(header.text) != 'white'"
+          :append-icon="determineColor(header.text) == 'white' ? '' : 'mdi-lock'"
         />
       </v-col>
     </v-row>
@@ -77,6 +78,9 @@ export default {
       "quarter_living_amount",
       "quarter_tuition_amount",
       "quarter_book_amount",
+      "student_exempt_amount",
+      "csg_pt_yearly_amount",
+      "allowed_percent",
     ],
   }),
   computed: {
@@ -110,6 +114,7 @@ export default {
     },
     determineColor(text) {
       if (this.deprecatedFields.includes(text)) return "warning lighten-3";
+      if (this.tableName == "csl_lookup" && text == "csg_8_month_amount") return "warning lighten-3";
 
       return "white";
     },
