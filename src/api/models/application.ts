@@ -605,9 +605,9 @@ export function FundingFromDraft(draft: any): any[] {
           yea_request_amount: cleanNumber(yea_request_amount),
         });
 
-      if (hasDependents && request_type_id == 4) {
+      if (request_type_id == 4) {
         funding.push({
-          request_type_id: 32, // Dependent grant for FT
+          request_type_id: 35, // Grant for FT
           status_id: 32, // Online status per Mariazel
           received_date: new Date(),
           status_date: new Date(),
@@ -616,8 +616,22 @@ export function FundingFromDraft(draft: any): any[] {
           csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
           is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
           is_csg_only: csfa_amounts == "Grants only",
-          yea_request_amount: cleanNumber(yea_request_amount),
         });
+
+        if (hasDependents) {
+          funding.push({
+            request_type_id: 32, // Dependent grant for FT
+            status_id: 32, // Online status per Mariazel
+            received_date: new Date(),
+            status_date: new Date(),
+            entering_first_year: draft.program_details.year_entering == 1,
+            student_is_in_ft_study: draft.program_details.attendance == "Full Time",
+            csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
+            is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
+            is_csg_only: csfa_amounts == "Grants only",
+            yea_request_amount: cleanNumber(yea_request_amount),
+          });
+        }
       } else if (hasDependents && request_type_id == 5) {
         funding.push({
           request_type_id: 33, // Dependent grant for PT
