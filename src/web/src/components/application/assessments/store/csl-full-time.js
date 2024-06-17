@@ -214,11 +214,14 @@ const actions = {
       });
   },
 
-  async createAssessment({ state }) {
+  async createAssessment({ state, dispatch }) {
     let url = `${CSG_THRESHOLD_URL}/cslft/${state.application.id}/funding-request/${state.fundingRequest.id}/assessment`;
 
-    axios.post(url).then(async (resp) => {
-      console.log("RESP", resp);
+    axios.post(url).then((resp) => {
+      dispatch("loadCSLFTAssessment", {
+        applicationId: state.fundingRequest.application_id,
+        assessmentId: state.assessment.id,
+      });
     });
   },
 

@@ -103,7 +103,7 @@ catalogRouter.post("/rate_tables/:academic_year_id", async (req: Request, res: R
     quarter_tuition_amount: 0,
     quarter_book_amount: 0,
     weekly_amount: 0,
-    allowed_percent: 0,
+    allowed_percent: 100,
   });
 
   const incomeRanges = [

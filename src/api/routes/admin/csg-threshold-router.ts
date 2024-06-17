@@ -513,7 +513,9 @@ csgThresholdRouter.get(
         .orderBy("issue_date")
         .orderBy("id");
 
-      return res.json({ data: { funding_request, assessment, disbursements } });
+      let msfaa = await db("sfa.msfaa").where({ application_id }).first();
+
+      return res.json({ data: { funding_request, assessment, disbursements, msfaa } });
     }
 
     res.status(404).send("Funding Request not found");
