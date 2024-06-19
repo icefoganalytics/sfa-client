@@ -152,6 +152,7 @@ csgThresholdRouter.put(
     let recalc = await repo.create(funding_request_id);
 
     delete (recalc as any).id;
+    delete (recalc as any).assessment_type_id;
     (recalc as any).student_contribution_override = null;
     (recalc as any).spouse_contribution_override = null;
     (recalc as any).parent_contribution_override = null;
