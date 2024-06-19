@@ -149,9 +149,10 @@ csgThresholdRouter.put(
     const { assessment_id, funding_request_id } = req.params;
 
     let repo = new AssessmentCslftRepositoryV2(db);
-    let recalc = await repo.create(funding_request_id);
+    let recalc = await repo.create(funding_request_id, assessment_id);
 
     delete (recalc as any).id;
+    delete (recalc as any).assessment_type_id;
     (recalc as any).student_contribution_override = null;
     (recalc as any).spouse_contribution_override = null;
     (recalc as any).parent_contribution_override = null;
