@@ -110,19 +110,15 @@ export class AssessmentCslftRepositoryV2 {
       .first();
   }
 
-  async create(fundingRequestId: number | string): Promise<CSLFTAssessmentBase | undefined> {
+  async create(
+    fundingRequestId: number | string,
+    assessmentId: number | string = 9999999
+  ): Promise<CSLFTAssessmentBase | undefined> {
     await this.load(parseInt(`${fundingRequestId}`));
-
-    /* if (ftLoan) csl_ft = Math.ceil(ftLoan.disbursed_amount);
-  if (ftGrant) csg_ft = Math.ceil(ftGrant.disbursed_amount);
-  if (ftDepGrant) csg_ftdep = Math.ceil(ftDepGrant.disbursed_amount);
-  if (disGrant) csg_d = Math.ceil(disGrant.disbursed_amount);
-  if (disSEGrant) csg_dse = Math.ceil(disSEGrant.disbursed_amount);
-  if (topup) topup_fund = Math.ceil(topup.disbursed_amount); */
 
     try {
       let assess = await this.calculateBase();
-      assess.id = 9999999;
+      assess.id = parseInt(`${assessmentId}`);
 
       await this.calculateCosts(assess);
       await this.calculateContribution(assess);
@@ -387,18 +383,6 @@ export class AssessmentCslftRepositoryV2 {
     input.total_contribution = total_contribution;
     input.total_resources = input.total_contribution;
     input.csl_assessed_need = input.total_costs - input.total_resources;
-
-    /* assess.csl_assessed_need_pct = 0.6;
-    assess.csl_assessed_need_net = assess.csl_assessed_need * assess.csl_assessed_need_pct;
-    assess.total_grants;
-    assess.max_allowable;
-    assess.calculated_award;
-    assess.requested_amount;
-    assess.actual_award;
-    assess.previous_certs;
-    assess.preview_disburse;
-    assess.netAmount; */
-
     input.csl_assessed_need_pct = input.csl_assessed_need * 0.6;
 
     input.max_allowable = 0;
@@ -408,7 +392,7 @@ export class AssessmentCslftRepositoryV2 {
     }
 
     const minVal = Math.min(
-      input.csl_assessed_need_pct - input.total_grant_awarded - input.total_contribution,
+      input.csl_assessed_need_pct - input.total_grant_awarded /* - input.total_contribution */,
       input.max_allowable
     );
     input.calculated_award = Math.max(0, minVal);
@@ -489,12 +473,12 @@ export class AssessmentCslftRepositoryV2 {
     }
 
     const calculated_award_min = Math.min(
-      sixty - (assess.total_grant_awarded ?? 0) - total_contribution,
+      sixty - (assess.total_grant_awarded ?? 0) /*  - total_contribution */,
       max_allowable ?? 0
     );
     const calculated_award: number = Math.max(0, Math.round(calculated_award_min));
 
-    if (!assess.csl_full_amt_flag) {
+    if (assess.csl_full_amt_flag == 0) {
       assess.assessed_amount = Math.max(
         Math.min(calculated_award, assess.csl_request_amount ?? 0) -
           (assess.over_award ?? 0) -
@@ -623,7 +607,7 @@ export class AssessmentCslftRepositoryV2 {
     assess.period = assess.study_months <= 4 ? "S" : "P";
 
     assess.csl_request_amount = this.fundingRequest.csl_request_amount;
-    assess.csl_full_amt_flag = this.fundingRequest.is_csl_full_amount ? 1 : undefined;
+    assess.csl_full_amt_flag = this.fundingRequest.is_csl_full_amount == true ? 1 : 0;
 
     let family = await calculateFamilySize(
       this.db,
@@ -813,11 +797,6 @@ export class AssessmentCslftRepositoryV2 {
       });
     }
 
-    /* assess.totalCapped = cleanDollars(
-      costsCapped.reduce((a: number, i: any) => {
-        return a + i.total;
-      }, 0)
-    ); */
     assess.uncapped_costs_total = cleanDollars(
       costsUncapped.reduce((a: number, i: any) => {
         return a + i.total;
@@ -904,6 +883,8 @@ export class AssessmentCslftRepositoryV2 {
       SUM(a.spouse_contribution) spouse_contribution FROM sfa.disbursement d INNER JOIN sfa.assessment a ON d.assessment_id = a.id INNER JOIN sfa.funding_request 
       fr ON fr.id = d.funding_request_id INNER JOIN sfa.application ap on ap.id = fr.application_id WHERE ap.academic_year_id = ${this.application.academic_year_id} 
       AND fr.request_type_id IN (3,4) AND ap.id = ${this.application.id} AND a.id < ${assess.id} GROUP BY d.assessment_id HAVING SUM(d.disbursed_amount) > 0`);
+
+    console.log("PREV", assess.id);
 
     if (previousContributions && previousContributions.length > 0) {
       assess.student_previous_contribution = previousContributions.reduce((a: number, i: any) => {
@@ -997,7 +978,7 @@ export class AssessmentCslftRepositoryV2 {
     assess.over_award = this.student.pre_over_award_amount ?? 0;
 
     // Calculate the totaln_disbursments_required
-    if (!assess.csl_full_amt_flag) {
+    if (assess.csl_full_amt_flag == 0) {
       assess.assessed_amount = Math.max(
         Math.min(calculated_award, assess.csl_request_amount ?? 0) -
           (assess.over_award ?? 0) -
