@@ -127,6 +127,11 @@ export class AssessmentCslftRepositoryV2 {
       await this.calculateCosts(assess);
       await this.calculateContribution(assess);
       await this.calculateParental(assess);
+
+      let full = await this.postLoad(assess, this.application.id);
+
+      assess.csl_assessed_need = full.csl_assessed_need;
+
       await this.calculateAward(assess);
       return assess;
     } catch (error) {
@@ -311,7 +316,6 @@ export class AssessmentCslftRepositoryV2 {
 
     if (input.csl_classification == 3) {
       // married - use student and spouse
-
       if (input.student_contrib_exempt == "NO") {
         input.student_contrib_exempt_reason = "Not Exempt";
 
@@ -319,9 +323,8 @@ export class AssessmentCslftRepositoryV2 {
           total_contribution += input.student_contribution_override;
         } else {
           //input.student_previous_contribution = 0; // not sure what to do with this???
-
-          input.student_contrib_exempt_reason = "";
-          total_contribution += input.student_contribution + input.student_other_resources;
+          //input.student_contrib_exempt_reason = "";
+          total_contribution += input.student_contribution; // + input.student_other_resources;
         }
       } else {
         input.student_contrib_exempt_reason = "Exempt: ";
@@ -334,18 +337,20 @@ export class AssessmentCslftRepositoryV2 {
       }
 
       if (input.spouse_contrib_exempt == "NO") {
+        input.spouse_contrib_exempt_reason = "Not Exempt";
+
         if (input.spouse_contribution_override) {
-          input.spouse_contrib_exempt_reason = "Not Exempt";
           total_contribution += input.spouse_contribution_override;
         } else {
-          input.spouse_contrib_exempt_reason = "Exempt: ";
-
-          if (this.application.spouse_study_emp_status_id != 4) input.spouse_contrib_exempt_reason += "Not employed";
-          else if (this.spouseIsFullTimeStudent()) input.spouse_contrib_exempt_reason += "Full-time student";
-
           //input.spouse_previous_contribution = 0; // again not sure about this
           total_contribution += input.spouse_contribution;
         }
+      } else {
+        input.spouse_contrib_exempt_reason = "Exempt: ";
+
+        if (this.application.spouse_study_emp_status_id != 4) input.spouse_contrib_exempt_reason += "Not employed";
+        else if (this.spouseIsFullTimeStudent()) input.spouse_contrib_exempt_reason += "Full-time student";
+        else input.spouse_contrib_exempt_reason += "Family income threshold not met";
       }
     } else if (input.csl_classification == 1) {
       input.student_contrib_exempt_reason = "Not Applicable";
@@ -363,7 +368,7 @@ export class AssessmentCslftRepositoryV2 {
           total_contribution += input.student_contribution_override;
         } else {
           //input.student_previous_contribution = 0; // not sure what to do with this???
-          total_contribution += input.student_contribution + input.student_other_resources;
+          total_contribution += input.student_contribution /* + input.student_other_resources */;
         }
       } else {
         input.student_contrib_exempt_reason = "Exempt: ";
@@ -381,7 +386,6 @@ export class AssessmentCslftRepositoryV2 {
     }
     input.total_contribution = total_contribution;
     input.total_resources = input.total_contribution;
-
     input.csl_assessed_need = input.total_costs - input.total_resources;
 
     /* assess.csl_assessed_need_pct = 0.6;
@@ -417,31 +421,6 @@ export class AssessmentCslftRepositoryV2 {
 
     input.previous_cert = prev.sum ?? 0;
 
-    /*
-parent_discretionary_income
-parent_contribution
-*/
-
-    /* 
-    // Family Size and Income
-    switch (this.assessment.csl_classification) {
-      case 1:
-        this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
-        break;
-      case 4:
-        this.assessment.family_income = this.assessment.student_ln150_income ?? 0;
-        break;
-      case 3:
-        this.assessment.family_income =
-          (this.assessment.student_ln150_income ?? 0) + (this.assessment.spouse_ln150_income ?? 0);
-        break;
-      default:
-        this.assessment.family_income = this.assessment.student_ln150_income ?? 0;
-    }
- */
-
-    //console.log("CONTIR", input);
-
     input.previous_disbursement = sumBy(
       this.disbursements.filter((d) => d.assessment_id == input.id),
       "disbursed_amount"
@@ -455,6 +434,10 @@ parent_contribution
       input.previous_cert -
       input.previous_disbursement -
       (input.return_uncashable_cert ?? 0);
+
+    input.net_amount = Math.round(input.net_amount * 100) / 100;
+    input.net_amount = input.net_amount == -0 ? 0 : input.net_amount;
+
     return input;
   }
 
@@ -577,8 +560,6 @@ parent_contribution
       this.application.csl_classification,
       this.application.study_accom_code
     );
-
-    console.log("CAT IS", this.application.category_id);
   }
 
   async loadLookups() {
@@ -922,7 +903,7 @@ parent_contribution
       .raw(`SELECT d.assessment_id, SUM(d.disbursed_amount) disbursed, SUM(a.student_contribution) student_contribution, 
       SUM(a.spouse_contribution) spouse_contribution FROM sfa.disbursement d INNER JOIN sfa.assessment a ON d.assessment_id = a.id INNER JOIN sfa.funding_request 
       fr ON fr.id = d.funding_request_id INNER JOIN sfa.application ap on ap.id = fr.application_id WHERE ap.academic_year_id = ${this.application.academic_year_id} 
-      AND fr.request_type_id IN (3,4) AND ap.student_id = ${this.application.student_id} AND a.id < ${assess.id} GROUP BY d.assessment_id HAVING SUM(d.disbursed_amount) > 0`);
+      AND fr.request_type_id IN (3,4) AND ap.id = ${this.application.id} AND a.id < ${assess.id} GROUP BY d.assessment_id HAVING SUM(d.disbursed_amount) > 0`);
 
     if (previousContributions && previousContributions.length > 0) {
       assess.student_previous_contribution = previousContributions.reduce((a: number, i: any) => {
@@ -970,6 +951,7 @@ parent_contribution
           ? 0
           : Math.round(assess.spouse_expected_contribution ?? 0 /* - assess.spouse_previous_contribution */);
     } else {
+      assess.spouse_contrib_exempt = "YES";
       assess.spouse_expected_contribution = 0;
       assess.spouse_previous_contribution = 0;
       assess.spouse_contribution = 0;
