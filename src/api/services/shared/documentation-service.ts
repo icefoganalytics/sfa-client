@@ -201,6 +201,12 @@ export class DocumentationService {
         case "Spouse as Dependent":
           // I don't currently know how to handle this...
           break;
+        case "Permanent Resident":
+          if (app.statistical.citizenship != "3") doc.meets_conditions = false;
+          break;
+        case "Second Residence":
+          if (app.funding_sources.second_residence != true) doc.meets_conditions = false;
+          break;
         case "Yukon and Previous CSL":
           // I don't currently know how to handle this...
           // But I belive it's handled by not having the requirement
