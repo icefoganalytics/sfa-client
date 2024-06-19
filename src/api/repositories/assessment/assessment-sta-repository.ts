@@ -47,6 +47,12 @@ export class AssessmentSTA extends AssessmentBaseRepository {
       initValues.home_city_id || 0,
       initValues.destination_city_id || 0,
     ]);
+
+    // clear travel if by correspondence
+    if (this.application.is_correspondence) {
+      initValues.travel_allowance = 0;
+    }
+
     initValues.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount_sta", [application_id]);
 
     if (disbursementList.length) {
@@ -159,6 +165,12 @@ export class AssessmentSTA extends AssessmentBaseRepository {
       refreshData.home_city_id || 0,
       refreshData.destination_city_id || 0,
     ]);
+
+    // clear travel if by correspondence
+    if (this.application.is_correspondence) {
+      refreshData.travel_allowance = 0;
+    }
+
     refreshData.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount_sta", [application_id]);
 
     refreshData.assessed_amount = await this.getScalarValue<number>("fn_get_other_inst_total_sta", [
