@@ -360,9 +360,13 @@ export function ApplicationFromDraft(draft: any): Application {
       ? ensureInteger(draft.residency.last_return_date.split("/")[1])
       : null,
 
+    is_two_residence: false,
+
     //prestudy_start_date: undefined,
     //prestudy_end_date: undefined,
   } as Application;
+
+  if (draft.funding_sources && draft.funding_sources.second_residence == true) app.is_two_residence = true;
 
   if (
     draft.csfa_accomodation &&

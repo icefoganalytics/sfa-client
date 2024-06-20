@@ -113,6 +113,15 @@ export class DocumentationService {
         case "Spouse as Dependent":
           // I don't currently know how to handle this...
           break;
+        case "Permanent Resident":
+          if (appDetail.citizenship_status != "3") doc.meets_conditions = false;
+          break;
+        case "Second Residence":
+          if (appDetail.is_two_residence != 1) doc.meets_conditions = false;
+          break;
+        case "Has Income":
+          //if (app.csfa_income.has_income != true) doc.meets_conditions = false;
+          break;
         case "Yukon and Previous CSL":
           // I don't currently know how to handle this...
           // But I belive it's handled by not having the requirement
@@ -181,6 +190,7 @@ export class DocumentationService {
           break;
         case "Has Dependant":
           if (app.student_dependants.has_dependants == false) doc.meets_conditions = false;
+          if (app.student_dependants.has_dependants != true) doc.meets_conditions = false;
           break;
         case "Married/Common Law":
           if (app.personal_details.category != 2) doc.meets_conditions = false;
@@ -206,6 +216,9 @@ export class DocumentationService {
           break;
         case "Second Residence":
           if (app.funding_sources.second_residence != true) doc.meets_conditions = false;
+          break;
+        case "Has Income":
+          if (app.csfa_income.has_income != true) doc.meets_conditions = false;
           break;
         case "Yukon and Previous CSL":
           // I don't currently know how to handle this...
