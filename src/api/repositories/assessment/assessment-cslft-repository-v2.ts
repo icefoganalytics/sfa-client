@@ -994,9 +994,6 @@ export class AssessmentCslftRepositoryV2 {
   }
 
   determineCategoryId(cslClassification: number, accomodationCode: number): number {
-    cslClassification = 1;
-    accomodationCode = 2;
-
     if (cslClassification == 1 && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SDH")?.id || -1;
     } else if (cslClassification == 1 && accomodationCode == 2) {
