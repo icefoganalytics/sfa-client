@@ -189,7 +189,6 @@ export class DocumentationService {
           if (app.personal_details.category != 1) doc.meets_conditions = false;
           break;
         case "Has Dependant":
-          if (app.student_dependants.has_dependants == false) doc.meets_conditions = false;
           if (app.student_dependants.has_dependants != true) doc.meets_conditions = false;
           break;
         case "Married/Common Law":
