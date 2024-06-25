@@ -116,38 +116,28 @@ export class AssessmentCslftRepositoryV2 {
   ): Promise<CSLFTAssessmentBase | undefined> {
     await this.load(parseInt(`${fundingRequestId}`));
 
-    try {
-      let assess = await this.calculateBase();
-      assess.id = parseInt(`${assessmentId}`);
+    let assess = await this.calculateBase();
+    assess.id = parseInt(`${assessmentId}`);
 
-      await this.calculateCosts(assess);
-      await this.calculateContribution(assess);
-      await this.calculateParental(assess);
+    await this.calculateCosts(assess);
+    await this.calculateContribution(assess);
+    await this.calculateParental(assess);
 
-      let full = await this.postLoad(assess, this.application.id);
+    let full = await this.postLoad(assess, this.application.id);
 
-      assess.csl_assessed_need = full.csl_assessed_need;
+    assess.csl_assessed_need = full.csl_assessed_need;
 
-      await this.calculateAward(assess);
-      return assess;
-    } catch (error) {
-      console.log("ERROR CREATING:", error);
-      return undefined;
-    }
+    await this.calculateAward(assess);
+    return assess;
   }
 
   async loadExisting(
     input: CSLFTAssessmentBase,
     applicationId: number | string
   ): Promise<CSLFTAssessmentFull | undefined> {
-    try {
-      await this.load(input.funding_request_id);
-      let full = await this.postLoad(input, applicationId);
-      return full;
-    } catch (error) {
-      console.log("ERROR CREATING:", error);
-      return undefined;
-    }
+    await this.load(input.funding_request_id);
+    let full = await this.postLoad(input, applicationId);
+    return full;
   }
 
   async postLoad(base: CSLFTAssessmentBase, applicationId: number | string): Promise<CSLFTAssessmentFull> {
@@ -256,6 +246,18 @@ export class AssessmentCslftRepositoryV2 {
           })
           .first();
 
+        if (!parentMsol) {
+          console.log(
+            "PARENTMSOL NOT FOUND",
+            this.application.academic_year_id,
+            parentAddress.province_id,
+            input.family_size
+          );
+
+          throw Error(
+            `Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
+          );
+        }
         input.parent_msol = parentMsol.standard_living_amount ?? 0;
         input.parent_discretionary_income = Math.round(input.parent_net_income_total - input.parent_msol);
 
@@ -280,7 +282,11 @@ export class AssessmentCslftRepositoryV2 {
               input.parent_discretionary_income
             );
 
-            contribution = await this.db("sfa.parent_contribution_formula")
+            throw Error(
+              `Contribution Formula not found for parent discretionary income: ${input.parent_discretionary_income}`
+            );
+
+            /*  contribution = await this.db("sfa.parent_contribution_formula")
               .where({ academic_year_id: this.application.academic_year_id })
               .first();
 
@@ -291,7 +297,7 @@ export class AssessmentCslftRepositoryV2 {
 
             input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
 
-            console.log("INSTEAD USING BASIC: ", contribution);
+            console.log("INSTEAD USING BASIC: ", contribution); */
           }
         }
       }
@@ -413,15 +419,14 @@ export class AssessmentCslftRepositoryV2 {
     //over_award can only be as big as the calculated = clear partial
 
     input.net_amount =
-      input.calculated_award -
-      (input.over_award ?? 0) -
+      input.assessed_amount /* -
+      (input.over_award ?? 0) */ -
       input.previous_cert -
-      input.previous_disbursement -
-      (input.return_uncashable_cert ?? 0);
+      input.previous_disbursement /* -
+      (input.return_uncashable_cert ?? 0) */;
 
     input.net_amount = Math.round(input.net_amount * 100) / 100;
     input.net_amount = input.net_amount == -0 ? 0 : input.net_amount;
-
     return input;
   }
 
@@ -544,6 +549,12 @@ export class AssessmentCslftRepositoryV2 {
       this.application.csl_classification,
       this.application.study_accom_code
     );
+
+    if (this.application.category_id == -1) {
+      throw Error(
+        `Cannot determine student category for csl: ${this.application.csl_classification}, study accomodation: ${this.application.study_accom_code}`
+      );
+    }
   }
 
   async loadLookups() {
@@ -609,13 +620,7 @@ export class AssessmentCslftRepositoryV2 {
     assess.csl_request_amount = this.fundingRequest.csl_request_amount;
     assess.csl_full_amt_flag = this.fundingRequest.is_csl_full_amount == true ? 1 : 0;
 
-    let family = await calculateFamilySize(
-      this.db,
-      this.application.csl_classification,
-      this.application.id,
-      !isEmpty(this.application.parent1_sin),
-      !isEmpty(this.application.parent2_sin)
-    );
+    let family = await calculateFamilySize(this.db, this.application.csl_classification, this.application.id);
 
     assess.student_contribution_review = assess.assessment_type_id === 2 ? "YES" : "NO";
     assess.spouse_contribution_review = assess.assessment_type_id === 2 ? "YES" : "NO";
@@ -884,8 +889,6 @@ export class AssessmentCslftRepositoryV2 {
       fr ON fr.id = d.funding_request_id INNER JOIN sfa.application ap on ap.id = fr.application_id WHERE ap.academic_year_id = ${this.application.academic_year_id} 
       AND fr.request_type_id IN (3,4) AND ap.id = ${this.application.id} AND a.id < ${assess.id} GROUP BY d.assessment_id HAVING SUM(d.disbursed_amount) > 0`);
 
-    console.log("PREV", assess.id);
-
     if (previousContributions && previousContributions.length > 0) {
       assess.student_previous_contribution = previousContributions.reduce((a: number, i: any) => {
         return a + i.student_contribution;
@@ -998,7 +1001,7 @@ export class AssessmentCslftRepositoryV2 {
       return this.studentCategories.find((c: any) => c.code == "SDH")?.id || -1;
     } else if (cslClassification == 1 && accomodationCode == 2) {
       return this.studentCategories.find((c: any) => c.code == "SDA")?.id || -1;
-    } else if ([2, 5].includes(cslClassification) && accomodationCode == -1) {
+    } else if ([2, 5].includes(cslClassification) && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SIH")?.id || -1;
     } else if ([2, 5].includes(cslClassification ?? 0) && accomodationCode == 2) {
       return this.studentCategories.find((c: any) => c.code == "SIA")?.id || -1;
@@ -1037,9 +1040,7 @@ function cleanDollars(input: number | undefined) {
 async function calculateFamilySize(
   db: Knex,
   classification: number,
-  applicationId: number,
-  hasParent1: boolean,
-  hasParent2: boolean
+  applicationId: number
 ): Promise<{
   family_size: number;
   total_dependants: number;
@@ -1104,7 +1105,6 @@ async function calculateFamilySize(
     family.under12_or_disabled = deps.filter((f: any) => f.is_csl_eligible && (f.age < 11 || f.is_disability)).length;
     family.over11 = deps.filter((f: any) => f.is_csl_eligible && f.age >= 12).length;
     family.post_secondary = deps.filter((f: any) => f.is_post_secondary).length;
-
     family.family_size = classification == 3 ? 2 + family.csl_dependants : 1 + family.csl_dependants;
   }
   // Single Dependent
@@ -1119,9 +1119,31 @@ async function calculateFamilySize(
       )
       .where({ application_id: applicationId, is_eligible: true });
 
+    let parentInfo = await db("sfa.application")
+      .leftJoin("sfa.person as p1", "application.parent1_id", "p1.id")
+      .leftJoin("sfa.person as p2", "application.parent2_id", "p2.id")
+      .where("application.id", applicationId)
+      .select(
+        "application.id",
+        "p1.first_name as p1f",
+        "p1.last_name as p1l",
+        "p2.first_name as p2f",
+        "p2.last_name as p2l"
+      )
+      .first();
+
+    let hasParent1 = false;
+    let hasParent2 = false;
+
+    if (parentInfo.p1f && parentInfo.p1l) {
+      hasParent1 = true;
+    }
+    if (parentInfo.p2f && parentInfo.p2l) {
+      hasParent2 = true;
+    }
+
     family.total_dependants = 1 + parentDeps.length;
     family.csl_dependants = 1;
-
     family.post_secondary = parentDeps.filter((f: any) => f.is_attend_post_secondary).length + 1;
     family.family_size = 1 + parentDeps.length + (hasParent1 ? 1 : 0) + (hasParent2 ? 1 : 0);
 
