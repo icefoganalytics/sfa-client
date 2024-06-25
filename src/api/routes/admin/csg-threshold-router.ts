@@ -149,20 +149,26 @@ csgThresholdRouter.put(
     const { assessment_id, funding_request_id } = req.params;
 
     let repo = new AssessmentCslftRepositoryV2(db);
-    let recalc = await repo.create(funding_request_id, assessment_id);
 
-    delete (recalc as any).id;
-    delete (recalc as any).assessment_type_id;
-    (recalc as any).student_contribution_override = null;
-    (recalc as any).spouse_contribution_override = null;
-    (recalc as any).parent_contribution_override = null;
-    (recalc as any).over_award = null;
-    (recalc as any).return_uncashable_cert = null;
-    (recalc as any).csl_non_reason_id = null;
-    (recalc as any).csl_over_reason_id = null;
+    try {
+      let recalc = await repo.create(funding_request_id, assessment_id);
 
-    await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
-    return res.status(200).json({ data: "Assessment Saved" });
+      delete (recalc as any).id;
+      delete (recalc as any).assessment_type_id;
+      (recalc as any).student_contribution_override = null;
+      (recalc as any).spouse_contribution_override = null;
+      (recalc as any).parent_contribution_override = null;
+      (recalc as any).over_award = null;
+      (recalc as any).return_uncashable_cert = null;
+      (recalc as any).csl_non_reason_id = null;
+      (recalc as any).csl_over_reason_id = null;
+
+      await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
+      return res.status(200).json({ data: "Assessment Saved" });
+    } catch (error) {
+      console.log("CATCHING", error);
+      return res.status(400).json({ error });
+    }
   }
 );
 
@@ -285,29 +291,34 @@ csgThresholdRouter.get(
           .first();
       }
 
-      let repo = new AssessmentCslftRepositoryV2(db);
-      // if there aren't any yet, build a new one
-      if (!assessment) {
-        assessment = await repo.create(funding_request.id);
+      try {
+        let repo = new AssessmentCslftRepositoryV2(db);
+        // if there aren't any yet, build a new one
+        if (!assessment) {
+          assessment = await repo.create(funding_request.id);
 
-        if (assessment) {
-          assessment = await repo.loadExisting(assessment, application_id);
-          delete (assessment as any).id;
-          return res.json({ data: { funding_request, assessment, disbursements: [] } });
-        }
-      } else {
-        assessment = await repo.loadExisting(assessment, funding_request.application_id);
+          if (assessment) {
+            assessment = await repo.loadExisting(assessment, application_id);
+            delete (assessment as any).id;
+            return res.json({ data: { funding_request, assessment, disbursements: [] } });
+          }
+        } else {
+          assessment = await repo.loadExisting(assessment, funding_request.application_id);
 
-        if (assessment) {
-          let disbursements = await db("sfa.disbursement")
-            .where({
-              funding_request_id: funding_request.id,
-              assessment_id: assessment.id,
-            })
-            .orderBy("issue_date")
-            .orderBy("id");
-          return res.json({ data: { funding_request, assessment, disbursements } });
+          if (assessment) {
+            let disbursements = await db("sfa.disbursement")
+              .where({
+                funding_request_id: funding_request.id,
+                assessment_id: assessment.id,
+              })
+              .orderBy("issue_date")
+              .orderBy("id");
+            return res.json({ data: { funding_request, assessment, disbursements } });
+          }
         }
+      } catch (error) {
+        console.log("catcing error", error);
+        return res.status(400).send("Error loading assessment - " + (error as any).message);
       }
     }
 

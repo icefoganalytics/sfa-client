@@ -77,29 +77,38 @@ const actions = {
     let url = `${CSG_THRESHOLD_URL}/cslft/${applicationId}`;
     if (assessmentId) url += `/${assessmentId}`;
 
-    axios.get(url).then(async (resp) => {
-      let application = store.getters.selectedApplication;
-      commit("SET_APPLICATION", application);
-      commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
-      commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
-      commit("SET_MSFAA", resp.data.data.msfaa);
+    axios
+      .get(url)
+      .then(async (resp) => {
+        let application = store.getters.selectedApplication;
+        commit("SET_APPLICATION", application);
+        commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
+        commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
+        commit("SET_MSFAA", resp.data.data.msfaa);
 
-      let assessment = resp.data.data.assessment;
+        let assessment = resp.data.data.assessment;
 
-      if (assessment) {
-        assessment.assessed_date = moment.utc(assessment.assessed_date).format("YYYY-MM-DD");
-        assessment.classes_start_date = moment.utc(assessment.classes_start_date).format("YYYY-MM-DD");
-        assessment.classes_end_date = moment.utc(assessment.classes_end_date).format("YYYY-MM-DD");
-      }
+        if (assessment) {
+          assessment.assessed_date = moment.utc(assessment.assessed_date).format("YYYY-MM-DD");
+          assessment.classes_start_date = moment.utc(assessment.classes_start_date).format("YYYY-MM-DD");
+          assessment.classes_end_date = moment.utc(assessment.classes_end_date).format("YYYY-MM-DD");
+        }
 
-      commit("SET_ASSESSMENT", assessment);
-      commit("SET_LOADING", false);
+        commit("SET_ASSESSMENT", assessment);
+        commit("SET_LOADING", false);
 
-      // child store initializers
-      //await store.dispatch("csgPartTimeStore/initialize", { app: application, assessment: state.assessment });
-      //await store.dispatch("csgPartTimeDependentStore/initialize", { app: application, assessment: state.assessment });
-      //await store.dispatch("csgPartTimeDisabilityStore/initialize", { app: application, assessment: state.assessment });
-    });
+        // child store initializers
+        //await store.dispatch("csgPartTimeStore/initialize", { app: application, assessment: state.assessment });
+        //await store.dispatch("csgPartTimeDependentStore/initialize", { app: application, assessment: state.assessment });
+        //await store.dispatch("csgPartTimeDisabilityStore/initialize", { app: application, assessment: state.assessment });
+      })
+      .catch((err) => {
+        console.log("FOUND ERROR");
+        alert(err.response.data);
+      })
+      .finally(() => {
+        commit("SET_LOADING", false);
+      });
   },
 
   async recalculate({ state, dispatch, commit }) {
@@ -113,6 +122,10 @@ const actions = {
           applicationId: state.fundingRequest.application_id,
           assessmentId: state.assessment.id,
         });
+      })
+      .catch((err) => {
+        console.log("FOUND ERROR");
+        alert(err.response.data);
       });
   },
 
