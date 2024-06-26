@@ -4,6 +4,9 @@ import { Knex } from "knex";
 import { clone, isEmpty, sum, sumBy } from "lodash";
 import moment from "moment";
 
+
+import * as Sentry from "@sentry/node";
+
 export class AssessmentCslftRepositoryV2 {
   readonly db;
 
@@ -1142,7 +1145,11 @@ async function calculateFamilySize(
       hasParent2 = true;
     }
 
-    console.log("PARENT INFO", parentInfo, hasParent1, hasParent2)
+    console.log("PARENT INFO", parentInfo, hasParent1, hasParent2);
+
+    Sentry.captureMessage(`PARENT INFO, ${parentInfo}, ${hasParent1}, ${hasParent2}`)
+
+    
 
     family.total_dependants = 1 + parentDeps.length;
     family.csl_dependants = 1;
