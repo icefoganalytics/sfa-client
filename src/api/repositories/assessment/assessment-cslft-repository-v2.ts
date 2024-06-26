@@ -1142,6 +1142,8 @@ async function calculateFamilySize(
       hasParent2 = true;
     }
 
+    console.log("PARENT INFO", parentInfo, hasParent1, hasParent2)
+
     family.total_dependants = 1 + parentDeps.length;
     family.csl_dependants = 1;
     family.post_secondary = parentDeps.filter((f: any) => f.is_attend_post_secondary).length + 1;
