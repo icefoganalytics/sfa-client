@@ -254,9 +254,10 @@ export class AssessmentCslftRepositoryV2 {
             input.family_size
           );
 
-          throw Error(
+          return input
+          /* throw Error(
             `Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
-          );
+          ); */
         }
         input.parent_msol = parentMsol.standard_living_amount ?? 0;
         input.parent_discretionary_income = Math.round(input.parent_net_income_total - input.parent_msol);
