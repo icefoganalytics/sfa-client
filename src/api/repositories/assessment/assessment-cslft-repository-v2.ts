@@ -1163,7 +1163,9 @@ async function calculateFamilySize(
     logger.info(`PARENT INFO: ${hasParent1}, ${hasParent2}`);
 
     family.total_dependants = 1 + parentDeps.length;
-    family.csl_dependants = 1;
+
+    // this is different from NARS - it shouldn't include the student as a dependent because it increases the costs
+    family.csl_dependants = 0;
     family.post_secondary = parentDeps.filter((f: any) => f.is_attend_post_secondary).length + 1;
     family.family_size = 1 + parentDeps.length + (hasParent1 ? 1 : 0) + (hasParent2 ? 1 : 0);
 
