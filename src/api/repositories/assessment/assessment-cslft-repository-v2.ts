@@ -373,7 +373,22 @@ export class AssessmentCslftRepositoryV2 {
       input.student_contrib_exempt_reason = "Not Applicable";
       input.spouse_contrib_exempt_reason = "Not Applicable";
 
-      input.parent_contribution_override = 0;
+      //input.parent_contribution_override = 0;
+
+      if (input.student_contrib_exempt == "NO") {
+        if (input.student_contribution_override) {
+          total_contribution += input.student_contribution_override;
+        } else {
+          //input.student_previous_contribution = 0; // not sure what to do with this???
+          total_contribution += input.student_contribution /* + input.student_other_resources */;
+        }
+      }
+
+      if (input.parent_contribution_override) {
+        total_contribution += input.parent_contribution_override;
+      } else {
+        total_contribution += input.parent_contribution;
+      }
     } else {
       // single
       input.spouse_contrib_exempt_reason = "Not Applicable";
@@ -680,10 +695,20 @@ export class AssessmentCslftRepositoryV2 {
     }
     assess.relocation_total = relocation;
 
-    if (
-      (!(this.application.study_living_w_spouse ?? false) && this.application.csl_classification == 3) ||
-      (this.application.prestudy_accom_code ?? 0) == 1
-    ) {
+    this.application.study_living_w_spouse = this.application.study_living_w_spouse ?? false;
+    this.application.prestudy_accom_code = this.application.prestudy_accom_code ?? 0;
+
+    // if you are married and not living with your spouse, you get return trans
+    if (this.application.csl_classification == 3 && this.application.study_living_w_spouse == false) {
+      returnTrans = this.cslLookup.return_transport_max_amount;
+      assess.r_trans_16wk = returnTrans;
+      returnTransTot = returnTrans;
+
+      if (assess.study_weeks >= 16) returnTransTot = returnTrans * 2;
+    }
+
+    // if you are living with your parents and
+    if (this.application.prestudy_accom_code == 1 && this.application.study_accom_code != 1) {
       returnTrans = this.cslLookup.return_transport_max_amount;
       assess.r_trans_16wk = returnTrans;
       returnTransTot = returnTrans;
