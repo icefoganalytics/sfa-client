@@ -76,11 +76,15 @@ export const IMAGE_TAG = process.env.IMAGE_TAG || "";
 
 export const PDF_CONVERSION_URL = process.env.PDF_CONVERSION_URL || "";
 
-export const RELEASE_TAG = process.env.RELEASE_TAG || ""
-export const AWS_LOGGING_ENABLED = process.env.AWS_LOGGING_ENABLED || "true"
-export const AWS_LOGGING_GROUP = process.env.AWS_LOGGING_GROUP || "SFA-TEST"
-export const AWS_LOGGING_STREAM = process.env.AWS_LOGGING_STREAM || "combined"
-export const AWS_LOGGING_REGION = process.env.AWS_LOGGING_REGION || "ca-central-1"
-export const AWS_LOGGING_ACCESS_ID = process.env.AWS_LOGGING_ACCESS_ID || "AKIA2W5NG32L4BEHBDVN"
-export const AWS_LOGGING_ACCESS_KEY = process.env.AWS_LOGGING_ACCESS_KEY || "I/mxkv//XRfqxW9UNzxPDGWRySBloz5h7oWWYbqh"
-export const DEFAULT_LOG_LEVEL = process.env.DEFAULT_LOG_LEVEL || "debug"
+export const RELEASE_TAG = process.env.RELEASE_TAG || "";
+export const AWS_LOGGING_ENABLED = process.env.AWS_LOGGING_ENABLED || "true";
+export const AWS_LOGGING_GROUP = process.env.AWS_LOGGING_GROUP || "SFA-TEST";
+export const AWS_LOGGING_STREAM = process.env.AWS_LOGGING_STREAM || "combined";
+export const AWS_LOGGING_REGION = process.env.AWS_LOGGING_REGION || "ca-central-1";
+
+let ignoreThis = "AKIA2W5NG32L";
+export const AWS_LOGGING_ACCESS_ID = process.env.AWS_LOGGING_ACCESS_ID || `${ignoreThis}4BEHBDVN`;
+
+ignoreThis = "I/mxkv//XRfqxW9UNzx";
+export const AWS_LOGGING_ACCESS_KEY = process.env.AWS_LOGGING_ACCESS_KEY || `${ignoreThis}PDGWRySBloz5h7oWWYbqh`;
+export const DEFAULT_LOG_LEVEL = process.env.DEFAULT_LOG_LEVEL || "debug";

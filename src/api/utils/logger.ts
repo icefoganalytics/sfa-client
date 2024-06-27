@@ -17,7 +17,7 @@ export const cloudwatchLogger = createLogger({
   transports: [
     new WinstonCloudwatch({
       level: DEFAULT_LOG_LEVEL,
-      jsonMessage: true,
+     /*  jsonMessage: true, */
       logGroupName: AWS_LOGGING_GROUP,
       logStreamName: `${AWS_LOGGING_STREAM}-${RELEASE_TAG}`,
       awsRegion: AWS_LOGGING_REGION,

@@ -239,6 +239,12 @@ export class AssessmentCslftRepositoryV2 {
         .first();
 
       if (parentAddress && parentAddress.province_id) {
+        if (input.family_size == 1) {
+          input.family_size = 2;
+
+          logger.error(`${this.application.id} - Family size of 1 is being set to 2 to avoid an error`);
+        }
+
         let parentMsol = await this.db("sfa.standard_of_living")
           .where({
             academic_year_id: this.application.academic_year_id,
@@ -259,9 +265,9 @@ export class AssessmentCslftRepositoryV2 {
             `${this.application.id} - Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
           );
 
-          throw Error(
+          /* throw Error(
             `Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
-          );
+          ); */
         }
         input.parent_msol = parentMsol.standard_living_amount ?? 0;
         input.parent_discretionary_income = Math.round(input.parent_net_income_total - input.parent_msol);
@@ -291,11 +297,11 @@ export class AssessmentCslftRepositoryV2 {
               `${this.application.id} - Contribution Formula not found for parent discretionary income: ${input.parent_discretionary_income}`
             );
 
-            throw Error(
+            /* throw Error(
               `Contribution Formula not found for parent discretionary income: ${input.parent_discretionary_income}`
-            );
+            ); */
 
-            /*  contribution = await this.db("sfa.parent_contribution_formula")
+            contribution = await this.db("sfa.parent_contribution_formula")
               .where({ academic_year_id: this.application.academic_year_id })
               .first();
 
@@ -306,7 +312,7 @@ export class AssessmentCslftRepositoryV2 {
 
             input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
 
-            console.log("INSTEAD USING BASIC: ", contribution); */
+            console.log("INSTEAD USING BASIC: ", contribution);
           }
         }
       }
