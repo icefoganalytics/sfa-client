@@ -715,6 +715,10 @@ export class AssessmentCslftRepositoryV2 {
 
       if (assess.study_weeks >= 16) returnTransTot = returnTrans * 2;
     }
+    
+
+    logger.info(`${this.application.prestudy_city_id} ${this.application.study_city_id} ${this.application.prestudy_city_id == this.application.study_city_id}`)
+
 
     // if study and prestudy are the same place, you don't get the return trans
     if (this.application.prestudy_city_id == this.application.study_city_id) {
