@@ -7,6 +7,7 @@ import { ReturnValidationErrors } from "@/middleware";
 import { cleanNumber, cleanNumberOptional } from "@/models";
 import moment from "moment";
 import { AssessmentCslftRepositoryV2 } from "@/repositories";
+import logger from "@/utils/logger";
 
 const db = knex(DB_CONFIG);
 
@@ -167,6 +168,7 @@ csgThresholdRouter.put(
       return res.status(200).json({ data: "Assessment Saved" });
     } catch (error) {
       console.log("CATCHING", error);
+      logger.error(error);
       return res.status(400).json({ error });
     }
   }
@@ -318,6 +320,7 @@ csgThresholdRouter.get(
         }
       } catch (error) {
         console.log("catcing error", error);
+        logger.error(error);
         return res.status(400).send("Error loading assessment - " + (error as any).message);
       }
     }
