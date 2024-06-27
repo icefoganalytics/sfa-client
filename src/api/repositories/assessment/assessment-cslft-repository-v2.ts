@@ -275,8 +275,8 @@ export class AssessmentCslftRepositoryV2 {
         if (input.parent_discretionary_income > 0) {
           let contribution = await this.db("sfa.parent_contribution_formula")
             .where({ academic_year_id: this.application.academic_year_id })
-            .where("income_from_amount", ">=", input.parent_discretionary_income)
-            .where("income_to_amount", "<=", input.parent_discretionary_income)
+            .where("income_from_amount", "<=", input.parent_discretionary_income)
+            .where("income_to_amount", ">=", input.parent_discretionary_income)
             .first();
 
           if (contribution) {

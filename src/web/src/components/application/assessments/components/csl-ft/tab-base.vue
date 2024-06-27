@@ -40,7 +40,7 @@
             <v-date-picker v-model="assessment.assessed_date" @input="assessed_date_menu = false"></v-date-picker>
           </v-menu>
         </v-col>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="2">
           <v-text-field
             outlined
             dense
@@ -50,6 +50,18 @@
             hide-details
             label="Dependents"
             v-model="assessment.dependent_count"
+          />
+        </v-col>
+        <v-col cols="12" md="2">
+          <v-text-field
+            outlined
+            dense
+            background-color="#ddd"
+            append-icon="mdi-lock"
+            readonly
+            hide-details
+            label="Familiy size"
+            v-model="assessment.family_size"
           />
         </v-col>
       </v-row>
