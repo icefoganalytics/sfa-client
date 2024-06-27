@@ -1,5 +1,6 @@
 import { cleanNumber } from "@/models";
 import { monthsBetween, weeksBetween } from "@/utils/date-utils";
+import logger from "@/utils/logger";
 import { Knex } from "knex";
 import { clone, sumBy } from "lodash";
 import moment from "moment";
@@ -254,10 +255,13 @@ export class AssessmentCslftRepositoryV2 {
             input.family_size
           );
 
-          return input
-          /* throw Error(
+          logger.error(
+            `${this.application.id} - Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
+          );
+
+          throw Error(
             `Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
-          ); */
+          );
         }
         input.parent_msol = parentMsol.standard_living_amount ?? 0;
         input.parent_discretionary_income = Math.round(input.parent_net_income_total - input.parent_msol);
@@ -281,6 +285,10 @@ export class AssessmentCslftRepositoryV2 {
               "Contribution Formula not found for ",
               this.application.academic_year_id,
               input.parent_discretionary_income
+            );
+
+            logger.error(
+              `${this.application.id} - Contribution Formula not found for parent discretionary income: ${input.parent_discretionary_income}`
             );
 
             throw Error(
@@ -552,6 +560,9 @@ export class AssessmentCslftRepositoryV2 {
     );
 
     if (this.application.category_id == -1) {
+      logger.error(
+        `${this.application.id} - Cannot determine student category for csl: ${this.application.csl_classification}, study accomodation: ${this.application.study_accom_code}`
+      );
       throw Error(
         `Cannot determine student category for csl: ${this.application.csl_classification}, study accomodation: ${this.application.study_accom_code}`
       );
@@ -1143,8 +1154,7 @@ async function calculateFamilySize(
       hasParent2 = true;
     }
 
-    console.log(`PARENT INFO ${parentInfo}, ${hasParent1}, ${hasParent2}`);
-    throw Error(`PARENT INFO ${parentInfo}, ${hasParent1}, ${hasParent2}`)
+    logger.info(`PARENT INFO: ${hasParent1}, ${hasParent2}`);
 
     family.total_dependants = 1 + parentDeps.length;
     family.csl_dependants = 1;
@@ -1158,6 +1168,8 @@ async function calculateFamilySize(
   } else {
     family.family_size = 1;
   }
+
+  logger.info(`FAMILY SIZE - ${family.family_size}`);
 
   return family;
 }
