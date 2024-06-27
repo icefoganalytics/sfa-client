@@ -716,6 +716,12 @@ export class AssessmentCslftRepositoryV2 {
       if (assess.study_weeks >= 16) returnTransTot = returnTrans * 2;
     }
 
+    // if study and prestudy are the same place, you don't get the return trans
+    if (this.application.prestudy_city_id == this.application.study_city_id) {
+      returnTrans = 0;
+      returnTransTot = 0;
+    }
+
     let costsCapped = [];
     assess.shelter_month =
       this.livingAllowance.shelter_amount + this.livingAllowance.food_amount + this.livingAllowance.misc_amount;
