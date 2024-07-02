@@ -715,7 +715,7 @@ export class AssessmentCslftRepositoryV2 {
 
       if (assess.study_weeks >= 16) returnTransTot = returnTrans * 2;
     }
-    
+
     // if study and prestudy are the same place, you don't get the return trans
     if (this.application.prestudy_city_id == this.application.study_city_id) {
       assess.r_trans_16wk = 0;
@@ -920,10 +920,11 @@ export class AssessmentCslftRepositoryV2 {
     ).income_threshold;
 
     if (family_income <= income_threshold) {
-      assess.student_expected_contribution = Math.min(
+      assess.student_expected_contribution = this.cslLookup.low_income_student_contrib_amount;
+      /*  Math.min(
         this.cslLookup.low_income_student_contrib_amount ?? 0,
-        ((this.cslLookup.low_income_student_contrib_amount ?? 0) / e_month) * (assess.study_weeks ?? 0)
-      );
+        ((this.cslLookup.low_income_student_contrib_amount ?? 0) / e_month) * (assess.study_weeks ?? 0) 
+      );*/
     } else {
       const weekly_student_contrib =
         (this.cslLookup.low_income_student_contrib_amount ?? 0) / e_month +
