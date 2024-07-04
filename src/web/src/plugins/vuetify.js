@@ -3,31 +3,31 @@ import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
 import "../assets/yk-style.css";
 
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { fas } from "@fortawesome/free-solid-svg-icons";
 
-Vue.component('font-awesome-icon', FontAwesomeIcon) // Register component globally
-library.add(fas) // Include needed icons
+Vue.component("font-awesome-icon", FontAwesomeIcon); // Register component globally
+library.add(fas); // Include needed icons
 
 //import '@fortawesome/fontawesome-free/css/all.css'
 //import '@fortawesome/fontawesome-free/js/all.js'
 
 Vue.use(Vuetify);
 export default new Vuetify({
-    theme: {
-        themes: {
-            light: {
-                primary: "#0097a9",
-                secondary: "#fff",
-                anchor: "#00818f",
-                bgAdminBar: "#FFF2D5",
-            }
-        }
+  theme: {
+    themes: {
+      light: {
+        primary: "#0097a9",
+        secondary: "#fff",
+        anchor: "#00818f",
+        bgAdminBar: "#FFF2D5",
+      },
     },
-    icons: {
-        //iconfont: 'faSvg', this breaks several things
-    },
+  },
+  icons: {
+    //iconfont: 'faSvg', this breaks several things
+  },
 });
 
 /* --blue:#007bff;
