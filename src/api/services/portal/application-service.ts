@@ -84,17 +84,17 @@ export class PortalApplicationService {
           let combinedApp = { ...draft, ...draftApp };
           let conv = ApplicationFromDraft(combinedApp);
 
-          console.log("ACADM", academicYear, conv.classes_start_date);
-
           if (
             !moment(conv.classes_start_date).isBetween(moment(academicYear.start_date), moment(academicYear.end_date))
-          )
+          ) {
             return reject(
-              `The start date for classes must between ${moment.utc(academicYear.start_date).format(
-                "YYYY/MM/DD"
-              )} and ${moment.utc(academicYear.end_date).format("YYYY/MM/DD")} for a ${academicYear.id} application.`
+              `The start date for classes must between ${moment
+                .utc(academicYear.start_date)
+                .format("YYYY/MM/DD")} and ${moment.utc(academicYear.end_date).format("YYYY/MM/DD")} for a ${
+                academicYear.id
+              } application.`
             );
-
+          }
           /* let parents = ParentsFromDraft(combinedApp);
           if (parents && parents[0]) {
             let relationship_id = parents[0].relationship;
