@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ADMIN_CATALOG_URL } from "@/urls";
-import { clone, cloneDeep, isArray } from "lodash";
+import { cloneDeep, isArray } from "lodash";
 
 const state = {
   catalogOptions: [
@@ -115,6 +115,18 @@ const state = {
         { text: "max_amount", value: "max_amount" },
       ],
     },
+
+    {
+      text: "Transportation",
+      url: `${ADMIN_CATALOG_URL}/transportation`,
+      headers: [
+        { text: "id", value: "id" },
+        { text: "home_city", value: "home_city_id" },
+        { text: "institution_city", value: "institution_city_id" },
+        { text: "travel_allowance_amount", value: "travel_allowance_amount" },
+        { text: "airfare_amount", value: "airfare_amount" },
+      ],
+    },
   ],
   selectedCatalog: undefined,
   selectedCatalogResults: undefined,
@@ -139,7 +151,6 @@ const mutations = {
 const actions = {
   async setCatalog({ commit, dispatch }, value) {
     commit("SET_SELECTEDCATALOG", value);
-    console.log("TESTINGING", value);
     dispatch("loadCatalog");
   },
   async loadCatalog({ commit, state }) {
