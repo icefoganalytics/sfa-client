@@ -67,7 +67,11 @@ export class PortalApplicationService {
     return await db("application_draft").withSchema(schema).where({ id }).update(draftPartial);
   }
 
-  async submitDraft(student: any, id: number): Promise<Application | undefined> {
+  async submitDraft(
+    student: any,
+    id: number,
+    academicYear: { id: number; start_date: Date; end_date: Date }
+  ): Promise<Application | undefined> {
     return new Promise(async (resolve, reject) => {
       let draft = await db("application_draft").withSchema(schema).where({ id }).first();
 
@@ -79,6 +83,17 @@ export class PortalApplicationService {
           let draftApp = JSON.parse(draft.application_json);
           let combinedApp = { ...draft, ...draftApp };
           let conv = ApplicationFromDraft(combinedApp);
+
+          console.log("ACADM", academicYear, conv.classes_start_date);
+
+          if (
+            !moment(conv.classes_start_date).isBetween(moment(academicYear.start_date), moment(academicYear.end_date))
+          )
+            return reject(
+              `The start date for classes must between ${moment.utc(academicYear.start_date).format(
+                "YYYY/MM/DD"
+              )} and ${moment.utc(academicYear.end_date).format("YYYY/MM/DD")} for a ${academicYear.id} application.`
+            );
 
           /* let parents = ParentsFromDraft(combinedApp);
           if (parents && parents[0]) {

@@ -6,17 +6,18 @@
         <div class="col-md-3">
           <div class="row">
             <div class="col-12 pr-md-0">
-              <v-text-field
+              <v-autocomplete
                 outlined
                 dense
                 background-color="white"
                 hide-details
-                readonly
                 label="Academic year"
-                :items="yearOptions"
-                append-icon="mdi-lock"
-                :value="application.academic_year_id"
-              ></v-text-field>
+                :items="academicYears"
+                item-text="id"
+                item-value="id"
+                v-model="application.academic_year_id"
+                @change="doSaveApp('academic_year_id', application.academic_year_id)"
+              ></v-autocomplete>
             </div>
             <div class="col-md-8">
               <div class="row">
@@ -334,6 +335,9 @@
           <v-alert type="warning" dense class="mt-4" v-if="totalDays > 365"
             >There are {{ totalDays }} between the Class start date and Class end date</v-alert
           >
+          <v-alert type="warning" dense class="mt-4" v-if="!startDateValid"
+            >The Class start date does not fall within the selected Acadmic year</v-alert
+          >
         </div>
       </v-card-text>
     </v-card>
@@ -410,6 +414,16 @@ export default {
         return moment(this.application.classes_end_date).diff(this.application.classes_start_date, "days");
       }
       return 0;
+    },
+    startDateValid() {
+      if (this.academicYear && this.application.classes_start_date) {
+        return moment(this.application.classes_start_date).isBetween(
+          moment(this.academicYear.start_date),
+          moment(this.academicYear.end_date)
+        );
+      }
+
+      return true;
     },
   },
   data: () => ({
