@@ -3,6 +3,7 @@ import { PortalApplicationService, PortalStudentService } from "../../services/p
 import StudentApplicationsService from "@/services/portal/students/student-applications-service";
 import { DocumentService, DocumentationService } from "../../services/shared";
 import { isArray } from "lodash";
+import { ReferenceService } from "@/services/portal/reference-service";
 
 export const portalApplicationRouter = express.Router();
 
@@ -251,8 +252,23 @@ portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: R
     let appIds = applications.map((a) => a.id);
 
     if (appIds.includes(parseInt(draftId))) {
+      const db = new ReferenceService();
+
+      // this returns only active and available year for portal submission
+      // if it's not a match, it can't be submitted
+      let academicYears = await db.getAcademicYears();
+
+      let toSubmit = applications.find((a) => a.id == draftId);
+      let yearToSubmit = academicYears.find((a) => a.id == toSubmit.academic_year_id);
+
+      if (!yearToSubmit) {
+        return res.json({
+          error: "The academic year associated with this application is not currently open for submissions.",
+        });
+      }
+
       await applicationService
-        .submitDraft(student, parseInt(draftId))
+        .submitDraft(student, parseInt(draftId), yearToSubmit)
         .then(async (application) => {
           if (application && application.id) {
             await documentService.getDocumentsForDraft(parseInt(draftId));
