@@ -979,11 +979,12 @@ studentRouter.get(
   }
 );
 
+/* This appears to be obviously garbage
 studentRouter.get("/:studentId/applications/:applicationId", async (req: Request, res: Response) => {
   let { studentId, applicationId } = req.params;
 
   res.json({ data: [{ appliation_id: 1123, institution_name: "HAPPY TOWN" }] });
-});
+}); */
 
 studentRouter.get(
   "/:student_id/vendor",
@@ -1002,18 +1003,16 @@ studentRouter.get(
           },
         });
 
-        if (vendor?.status === 200) {
+        if (vendor && vendor.status === 200) {
           return res.status(200).json({ success: true, data: { ...vendor.data } });
-        } else {
-          return res.status(404).send();
         }
-      } else {
-        return res.status(404).send();
       }
     } catch (error: any) {
-      console.log(error);
-      return res.status(404).send();
+      console.log("ERORR LOADING VENDOR", error);
+      return res.status(500).send(error);
     }
+
+    res.status(404).send();
   }
 );
 
@@ -1022,11 +1021,9 @@ studentRouter.get(
   [param("student_id").isInt().notEmpty()],
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
-    let { term } = req.params;
+    let { term, student_id } = req.params;
 
     try {
-      let { student_id } = req.params;
-
       const student = await db("sfa.student").where({ id: student_id }).first();
 
       if (student) {
@@ -1038,18 +1035,16 @@ studentRouter.get(
           }
         );
 
-        if (vendorList?.status === 200) {
+        if (vendorList && vendorList.status === 200) {
           return res.status(200).json({ success: true, data: { ...vendorList.data } });
-        } else {
-          return res.status(404).send();
         }
-      } else {
-        return res.status(404).send();
       }
     } catch (error: any) {
       console.log(error);
-      return res.status(404).send();
+      return res.status(400).send(error);
     }
+
+    res.status(404).send();
   }
 );
 
@@ -1062,29 +1057,41 @@ studentRouter.post(
       const { student_id } = req.params;
       const { data } = req.body;
 
-      const student: any = await db("sfa.student").where({ id: student_id }).first();
+      const student = await db("sfa.student")
+        .innerJoin("sfa.person", "student.person_id", "person_id")
+        .where({ "student.id": student_id })
+        .first();
+      const vendorAddress = await db("sfa.v_current_person_address").where({ id: data.address_id }).first();
 
-      if (student) {
-        if (Object.keys(data).some((k) => k === "vendor_id")) {
-          if (!data.vendor_id) {
-            return res.json({ messages: [{ variant: "error", text: "Vendor Id is required" }] });
-          }
-        }
+      if (student && vendorAddress) {
+        console.log("STUDENT VENDOR", student.vendor_id);
+        console.log("BODY", req.body);
 
-        if (Object.keys(data).some((k) => k === "address_type_id")) {
-          if (!data.address_type_id) {
-            return res.json({ messages: [{ variant: "error", text: "Address Type Id is required" }] });
-          }
-        }
+        const toInsert = {
+          address: `${vendorAddress.address1},  ${vendorAddress.address2}`,
+          city_id: vendorAddress.city_id,
+          province_id: vendorAddress.province_id,
+          postal_code: vendorAddress.postal_code,
+          country_id: vendorAddress.country_id,
+          telephone: student.telephone,
+          email: student.email,
+          address_type_id: vendorAddress.address_type_id,
+          vendor_id: student.vendor_id,
+          created_date: new Date(),
+          update_requested_date: new Date(),
+          student_id,
+        };
 
-        const resInsert = await db("sfa.vendor_update").insert({ ...data, student_id });
+        await db("sfa.vendor_update").insert(toInsert);
 
-        return resInsert
+        /*         return resInsert
           ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
-          : res.json({ messages: [{ variant: "error", text: "Failed" }] });
+          : res.json({ messages: [{ variant: "error", text: "Failed" }] }); */
+
+        return res.json({ messages: [{ variant: "success", text: "Saved" }] });
       }
 
-      return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
+      return res.status(404).send("Studend and address not found");
     } catch (error) {
       console.error(error);
       return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
