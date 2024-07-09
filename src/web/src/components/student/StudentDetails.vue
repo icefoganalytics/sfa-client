@@ -7,32 +7,24 @@
       <v-tab key="1">SFA Info</v-tab>
       <v-tab key="2">Vendor info</v-tab>
       <v-tab key="3">Consent</v-tab>
+      <v-tab key="4">Standing Documents</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px 0">
       <v-tab-item key="0">
-        <contact-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></contact-form>
+        <contact-form v-on:showSuccess="showSuccess" v-on:showError="showError"></contact-form>
       </v-tab-item>
       <v-tab-item key="1">
-        <sfa-info-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></sfa-info-form>
+        <sfa-info-form v-on:showSuccess="showSuccess" v-on:showError="showError"></sfa-info-form>
       </v-tab-item>
       <v-tab-item key="2">
-        <vendor-info-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></vendor-info-form>
+        <vendor-info-form v-on:showSuccess="showSuccess" v-on:showError="showError"></vendor-info-form>
       </v-tab-item>
       <v-tab-item key="3">
-        <consent-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></consent-form>
+        <consent-form v-on:showSuccess="showSuccess" v-on:showError="showError"></consent-form>
+      </v-tab-item>
+      <v-tab-item key="4">
+        <standing-documents v-on:showSuccess="showSuccess" v-on:showError="showError"></standing-documents>
       </v-tab-item>
     </v-tabs-items>
   </div>
@@ -44,12 +36,13 @@ import store from "../../store";
 
 import ConsentForm from "./ConsentForm.vue";
 import ContactForm from "./ContactForm.vue";
-import SfaInfoForm from './SfaInfoForm.vue';
-import VendorInfoForm from './VendorInfoForm.vue';
+import SfaInfoForm from "./SfaInfoForm.vue";
+import VendorInfoForm from "./VendorInfoForm.vue";
+import StandingDocuments from "./StandingDocuments.vue";
 
 export default {
   name: "Home",
-  components: { ContactForm, ConsentForm, SfaInfoForm, VendorInfoForm },
+  components: { ContactForm, ConsentForm, SfaInfoForm, VendorInfoForm, StandingDocuments },
   computed: {
     ...mapState(["selectedStudent"]),
   },
@@ -77,7 +70,7 @@ export default {
     }
   },
   watch: {
-    student: function (val) {
+    student: function(val) {
       if (val) this.updateView(val);
     },
     //selectedStudent: function (val) {
