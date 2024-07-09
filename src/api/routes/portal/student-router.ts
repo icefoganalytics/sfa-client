@@ -187,7 +187,7 @@ portalStudentRouter.post("/:sub/application/:application_id/files", async (req: 
         disability_requirement_id,
         person_id,
         dependent_id,
-        visible_in_portal: true
+        visible_in_portal: true,
       });
     }
     return res.json({ message: "success" });

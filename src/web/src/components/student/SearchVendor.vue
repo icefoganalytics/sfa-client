@@ -1,16 +1,21 @@
 <template>
   <v-dialog v-model="dialogModel" persistent max-width="700px">
     <v-card>
-      <v-card-text>
-        <div class="d-flex justify-center">
-          <v-card-title>Vendor Selection</v-card-title>
-        </div>
+      <v-toolbar color="#ffc850" dense flat>
+        <v-toolbar-title class="pl-0">Vendor Selection</v-toolbar-title>
+        <v-spacer></v-spacer>
 
-        <div class="row">
-          <div class="col-6">
+        <v-btn icon @click.stop="doDeny()">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar>
+
+      <v-card-text class="pt-4">
+        <v-row>
+          <v-col cols="6">
             <v-text-field
               v-model="searcher"
-              label="Filter"
+              label="Search"
               dense
               outlined
               append-icon="mdi-magnify"
@@ -18,19 +23,16 @@
               @keydown="checkEnter"
               hint="Enter a search term and press Enter"
               persistent-hint
-            >
-            </v-text-field>
-          </div>
-          <div class="col-6">
-            <div class="row">
-              <v-switch label="Vendor ID" v-model="filterVendorId"> </v-switch>
-              <v-switch label="Vendor Name" class="ml-5" v-model="filterVendorName"> </v-switch>
-            </div>
-          </div>
-        </div>
+          /></v-col>
+          <v-col cols="6" class="d-flex">
+            <v-switch label="Vendor ID" v-model="filterVendorId" class="my-1" />
+            <v-switch label="Vendor Name" v-model="filterVendorName" class=" ml-5 my-1" />
+          </v-col>
+        </v-row>
 
         <v-data-table
           height="400px"
+          :loading="loading"
           @click:row="enterSelect"
           :headers="[
             { text: 'Vendor ID', value: 'VendorId', sortable: false, filterable: filterVendorId },
@@ -46,12 +48,13 @@
             </tr>
           </template>
         </v-data-table>
+
+        <div class="d-flex">
+          <v-btn color="primary" :disabled="!!!current" @click="doConfirm()">Confirm</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="secondary" @click="doDeny()">Close</v-btn>
+        </div>
       </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" :disabled="!!!current" @click="doConfirm()">Confirm</v-btn>
-        <v-spacer></v-spacer>
-        <v-btn color="secondary" @click="doDeny()">Cancel</v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -60,6 +63,21 @@
 import store from "@/store";
 
 export default {
+  props: {
+    dialogModel: Boolean,
+    showModal: Function,
+    getVendorData: Function,
+    vendorList: Array,
+    doSearch: Function,
+  },
+  data: () => ({
+    loading: false,
+    searcher: "",
+    filterVendorId: true,
+    filterVendorName: true,
+    title: "",
+    current: null,
+  }),
   computed: {
     student: function() {
       return store.getters.selectedStudent;
@@ -70,14 +88,6 @@ export default {
       store.dispatch("setSearch", val);
     },
   },
-  components: {},
-  data: () => ({
-    searcher: "",
-    filterVendorId: true,
-    filterVendorName: true,
-    title: "",
-    current: null,
-  }),
   methods: {
     doSaveStudent(field, value, type, extraId = null, addressType = "") {
       store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
@@ -98,20 +108,25 @@ export default {
     enterSelect(e) {
       this.current = e;
     },
-    vendorSearchClick() {
-      this.doSearch(this.searcher);
+    async vendorSearchClick() {
+      this.loading = true;
+      this.doSearch(this.searcher).then(() => {
+        this.loading = false;
+      });
     },
-    checkEnter(event) {
-      if (event.key === "Enter") this.doSearch(this.searcher);
+    async checkEnter(event) {
+      if (event.key === "Enter") {
+        this.loading = true;
+        this.doSearch(this.searcher).then(() => {
+          this.loading = false;
+        });
+      }
     },
-  },
-  async created() {},
-  props: {
-    dialogModel: Boolean,
-    showModal: Function,
-    getVendorData: Function,
-    vendorList: Array,
-    doSearch: Function,
   },
 };
 </script>
+<style>
+.v-application tr.success {
+  background-color: #4caf5099 !important;
+}
+</style>
