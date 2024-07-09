@@ -151,7 +151,7 @@
         <v-icon @click="showEdit = false">mdi-close</v-icon>
       </v-toolbar>
       <v-card>
-        <v-card-text class="pt-4">
+        <v-card-text class="pt-4" v-if="editRecord">
           <p>Once this request has been completed and the verified, please click the 'Mark Complete'</p>
 
           <p>
@@ -265,6 +265,11 @@ export default {
       store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
     },
     async getVendorData() {
+      if (!this.student || isNil(this.student.vendor_id)) {
+        console.log("Not looking up vendor");
+        return;
+      }
+
       this.isLoadingVendor = true;
 
       await axios
