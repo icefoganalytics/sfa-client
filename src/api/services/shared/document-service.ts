@@ -76,6 +76,13 @@ export class DocumentService {
   }
 
   //return the Document metadata
+  async getStandingDocumentsForStudent(student_id: number): Promise<FileReferenceBase[]> {
+    return await db<FileReferenceBase>("sfa.file_reference")
+      .innerJoin("sfa.requirement_type", "requirement_type.id", "file_reference.requirement_type_id")
+      .where({ student_id, is_standing_document: true });
+  }
+
+  //return the Document metadata
   async getDocumentsForApplication(application_id: number): Promise<FileReferenceBase[]> {
     return await db<FileReferenceBase>("sfa.file_reference")
       .where({ application_id })
