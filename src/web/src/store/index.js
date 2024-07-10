@@ -123,6 +123,7 @@ export default new Vuex.Store({
     flagOptions: [],
     flagMatches: [],
     documentation: [],
+    standingDocumentation: [],
   },
   getters: {
     showAppSidebar: (state) => state.showAppSidebar,
@@ -216,6 +217,21 @@ export default new Vuex.Store({
 
       state.documentation = value;
     },
+    SET_STANDING_DOCUMENTATION(state, value) {
+      if (value) {
+        for (let doc of value) {
+          doc.upload_date = !isEmpty(doc.upload_date)
+            ? moment.utc(doc.upload_date).format("YYYY-MM-DD")
+            : doc.upload_date;
+          doc.status_date = !isEmpty(doc.status_date)
+            ? moment.utc(doc.status_date).format("YYYY-MM-DD")
+            : doc.status_date;
+          doc.showThing = doc.status == "2";
+        }
+      }
+
+      state.standingDocumentation = value;
+    },
   },
   actions: {
     setAppSidebar(state, value) {
@@ -288,6 +304,11 @@ export default new Vuex.Store({
     async loadDocumentation({ commit, state }) {
       axios.get(`${APPLICATION_URL}/${state.selectedApplicationId}/required-documents`).then((resp) => {
         commit("SET_DOCUMENTATION", resp.data.data);
+      });
+    },
+    async loadStandingDocumentation({ commit, state }) {
+      axios.get(`${STUDENT_URL}/${state.selectedStudentId}/standing-documents`).then((resp) => {
+        commit("SET_STANDING_DOCUMENTATION", resp.data.data);
       });
     },
 

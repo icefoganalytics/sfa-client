@@ -1,16 +1,19 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import moment from "moment";
 import knex from "knex";
+import { orderBy } from "lodash";
+import axios from "axios";
 import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { first, orderBy } from "lodash";
-import axios from "axios";
-let { RequireActive, RequireAdmin } = require("../auth");
+import { DocumentService } from "@/services/shared";
+let { RequireActive } = require("../auth");
 
 const db = knex(DB_CONFIG);
 
 export const studentRouter = express.Router();
+
+const documentService = new DocumentService();
 
 studentRouter.post(
   "/",
@@ -985,6 +988,13 @@ studentRouter.get("/:studentId/applications/:applicationId", async (req: Request
 
   res.json({ data: [{ appliation_id: 1123, institution_name: "HAPPY TOWN" }] });
 }); */
+
+studentRouter.get("/:student_id/standing-documents", async (req: Request, res: Response) => {
+  const { student_id } = req.params;
+
+  const returnDocs = await documentService.getStandingDocumentsForStudent(parseInt(student_id));
+  return res.json({ data: returnDocs });
+});
 
 studentRouter.get(
   "/:student_id/vendor",

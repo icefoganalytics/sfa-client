@@ -258,3 +258,15 @@ portalStudentRouter.delete(
     res.status(404).send();
   }
 );
+
+portalStudentRouter.get("/:sub/standing-documents", async (req: Request, res: Response) => {
+  const { sub } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let returnDocs = await documentService.getStandingDocumentsForStudent(student.id);
+    return res.json({ data: returnDocs });
+  }
+
+  res.status(404).send();
+});
