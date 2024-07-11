@@ -53,10 +53,11 @@
       >
       <v-card-text>
         <div>
-          <v-data-table :items="student.vendor_updates" :headers="headers" @click:row="requestRowClick">
+          <v-data-table :items="student.vendor_updates" :headers="headers" @click:row="requestRowClick" class="row-clickable">
             <template #item.update_requested_date="{item}">{{ formatDate(item.update_requested_date) }}</template>
             <template #item.update_completed_date="{item}">{{ formatDate(item.update_completed_date) }}</template>
             <template #item.status="{item}">{{ generateStatus(item) }}</template>
+            <template #item.download="{item}"><v-icon @click.stop="downloadClick(item)">mdi-download</v-icon></template>
           </v-data-table>
         </div>
       </v-card-text>
@@ -84,13 +85,7 @@
                 outlined
               />
             </v-col>
-            <v-col cols="4" v-if="newRecord.operation == 'update'">
-              <v-switch label="Update address?" class="my-3 mt-2" v-model="newRecord.do_address_update" hide-details />
-            </v-col>
-            <v-col
-              :cols="newRecord.operation == 'create' ? '12' : '8'"
-              v-if="newRecord.do_address_update || newRecord.operation == 'create'"
-            >
+            <v-col cols="12">
               <v-select
                 label="Student address"
                 :items="student.addresses"
@@ -104,12 +99,20 @@
                 background-color="white"
               />
             </v-col>
+            <v-col cols="12" v-if="newRecord.operation == 'update'">
+              <v-switch
+                label="Update address to match above?"
+                class="my-2"
+                v-model="newRecord.is_address_update"
+                hide-details
+              />
+            </v-col>
           </v-row>
           <v-row>
             <v-col cols="4" v-if="newRecord.operation == 'update'">
               <v-switch
                 label="Update banking info?"
-                v-model="newRecord.do_banking_update"
+                v-model="newRecord.is_banking_update"
                 hide-details
                 class="my-3 mt-2"
               />
@@ -118,7 +121,7 @@
             <v-col cols="5" v-if="newRecord.operation == 'update'">
               <v-switch
                 label="Setup direct deposit?"
-                v-model="newRecord.do_deposit_update"
+                v-model="newRecord.is_direct_deposit_update"
                 hide-details
                 class="my-3 mt-2"
             /></v-col>
@@ -126,12 +129,12 @@
             <v-col cols="12" v-if="newRecord.operation == 'update'">
               <v-switch
                 label="Name change (due to special circumstances)?"
-                v-model="newRecord.do_name_update"
+                v-model="newRecord.is_name_change_update"
                 class="my-1"
               />
               <v-text-field
-                v-if="newRecord.do_name_update"
-                v-model="newRecord.name_comments"
+                v-if="newRecord.is_name_change_update"
+                v-model="newRecord.name_change_comment"
                 label="Name change comment"
                 dense
                 outlined
@@ -139,7 +142,7 @@
               />
             </v-col>
           </v-row>
-          <v-btn color="primary" class="mt-5" @click="addVendorRequest">Save</v-btn>
+          <v-btn color="primary" class="mt-5" @click="addVendorRequest" :disabled="!canSaveRequest">Save</v-btn>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -152,13 +155,18 @@
       </v-toolbar>
       <v-card>
         <v-card-text class="pt-4" v-if="editRecord">
-          <p>Once this request has been completed and the verified, please click the 'Mark Complete'</p>
+          <div v-if="!editRecord.update_completed_date">
+            <p>Once this request has been completed and the verified, please click the 'Mark Complete'</p>
 
-          <p>
-            This request was created on {{ formatDate(editRecord.update_requested_date) }} and is currently
-            {{ generateStatus(editRecord) }}.
-          </p>
-          <v-btn color="primary" @click="markCompleteClick">Mark Complete</v-btn>
+            <p>
+              This request was created on {{ formatDate(editRecord.update_requested_date) }} and is currently
+              {{ generateStatus(editRecord) }}.
+            </p>
+            <v-btn color="primary" @click="markCompleteClick(editRecord)">Mark Complete</v-btn>
+          </div>
+          <div v-else>
+            <p class="mb-0">This request was completed on {{ formatDate(editRecord.update_completed_date) }}</p>
+          </div>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -209,6 +217,7 @@ export default {
       { text: "Vendor ID", value: "vendor_id" },
       { text: "Requested On", value: "update_requested_date" },
       { text: "Completed On", value: "update_completed_date" },
+      { text: "", value: "download" },
     ],
     editRecord: null,
   }),
@@ -235,6 +244,9 @@ export default {
 
       return "";
     },
+    canSaveRequest() {
+      return !isNil(this.newRecord.address_id);
+    },
   },
   created() {
     this.validate = validator;
@@ -247,11 +259,11 @@ export default {
 
       this.newRecord = {
         operation,
-        do_address_update: false,
-        do_banking_update: false,
-        do_deposit_update: false,
-        do_name_update: false,
-        name_comments: null,
+        is_address_update: false,
+        is_banking_update: false,
+        is_direct_deposit_update: false,
+        is_name_change_update: false,
+        name_change_comment: null,
         address_id: null,
       };
 
@@ -273,7 +285,7 @@ export default {
       this.isLoadingVendor = true;
 
       await axios
-        .get(STUDENT_URL + `/${this.student.id}/vendor`)
+        .get(`${STUDENT_URL}/${this.student.id}/vendor`)
         .then((res) => {
           if (res?.data?.success) {
             this.vendorData = res.data.data.data[0];
@@ -313,7 +325,6 @@ export default {
           data: { ...this.newRecord, vendor_id: this.student.vendor_id },
         })
         .then((res) => {
-          console.log("RESP", res);
           const message = res?.data?.messages[0];
 
           if (message?.variant === "success") {
@@ -324,11 +335,10 @@ export default {
         })
         .catch((error) => {
           console.log(error);
-          this.$emit("showError", "Error to insert");
+          this.$emit("showError", "Error creating vendor request");
         })
         .finally(() => {
           store.dispatch("loadStudent", this.student.id);
-
           this.showAdd = false;
         });
     },
@@ -345,12 +355,38 @@ export default {
       this.showEdit = true;
     },
 
+    downloadClick(item) {
+      window.open(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}?format=pdf`);
+    },
+
     generateStatus(item) {
       if (item.update_completed_date) return "Complete";
       return "Pending";
     },
-    markCompleteClick() {
+    markCompleteClick(item) {
       alert("not yet implemented");
+
+      axios
+        .put(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, { update_completed_date: new Date() })
+        .then((res) => {
+          console.log("RESP", res);
+          const message = res?.data?.messages[0];
+
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+          } else {
+            this.$emit("showError", message.text);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.$emit("showError", "Error completing vendor request");
+        })
+        .finally(() => {
+          store.dispatch("loadStudent", this.student.id);
+
+          this.showEdit = false;
+        });
     },
 
     showSuccess(mgs) {

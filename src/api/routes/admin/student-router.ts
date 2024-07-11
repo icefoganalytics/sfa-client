@@ -1,12 +1,15 @@
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import moment from "moment";
+import { readFileSync } from "fs";
 import knex from "knex";
 import { orderBy } from "lodash";
 import axios from "axios";
 import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../../middleware";
-import { DB_CONFIG } from "../../config";
+import { API_PORT, DB_CONFIG } from "../../config";
 import { DocumentService } from "@/services/shared";
+import { generatePDF } from "@/utils/pdf-generator";
+import { create } from "express-handlebars";
 let { RequireActive } = require("../auth");
 
 const db = knex(DB_CONFIG);
@@ -362,7 +365,7 @@ studentRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, asyn
 
         const consentInfo = await db("sfa.student_consent").where({ student_id: id });
 
-        const vendorUpdates = await db("sfa.vendor_update").where({ student_id: id });
+        const vendorUpdates = await db("sfa.vendor_update").where({ student_id: id }).orderBy("created_date", "desc");
 
         const residenceInfo = await db("sfa.residence").where({ student_id: id });
 
@@ -1071,14 +1074,12 @@ studentRouter.post(
         .innerJoin("sfa.person", "student.person_id", "person_id")
         .where({ "student.id": student_id })
         .first();
-      const vendorAddress = await db("sfa.v_current_person_address").where({ id: data.address_id }).first();
+      const vendorAddress = await db("sfa.person_address").where({ id: data.address_id }).first();
 
       if (student && vendorAddress) {
-        console.log("STUDENT VENDOR", student.vendor_id);
-        console.log("BODY", req.body);
-
         const toInsert = {
-          address: `${vendorAddress.address1},  ${vendorAddress.address2}`,
+          student_id,
+          address: `${vendorAddress.address1 ?? ""},  ${vendorAddress.address2 ?? ""}`,
           city_id: vendorAddress.city_id,
           province_id: vendorAddress.province_id,
           postal_code: vendorAddress.postal_code,
@@ -1089,58 +1090,88 @@ studentRouter.post(
           vendor_id: student.vendor_id,
           created_date: new Date(),
           update_requested_date: new Date(),
-          student_id,
+          is_address_update: data.is_address_update,
+          is_banking_update: data.is_banking_update,
+          is_direct_deposit_update: data.is_direct_deposit_update,
+          is_name_change_update: data.is_name_change_update,
+          name_change_comment: data.name_change_comment,
         };
 
         await db("sfa.vendor_update").insert(toInsert);
-
-        /*         return resInsert
-          ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
-          : res.json({ messages: [{ variant: "error", text: "Failed" }] }); */
-
         return res.json({ messages: [{ variant: "success", text: "Saved" }] });
       }
 
       return res.status(404).send("Studend and address not found");
     } catch (error) {
       console.error(error);
-      return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
+      return res.status(400).send({ messages: [{ variant: "error", text: "Failed" }] });
     }
   }
 );
 
-studentRouter.patch(
+studentRouter.get(
+  "/:student_id/vendor-update/:id",
+  [param("student_id").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { student_id, id } = req.params;
+    const { format } = req.query;
+    const update = await db("sfa.vendor_update")
+      .where({ "vendor_update.id": id, student_id })
+      .leftOuterJoin("sfa.city", "city.id", "vendor_update.city_id")
+      .leftOuterJoin("sfa.province", "province.id", "vendor_update.city_id")
+
+      .select("vendor_update.*", "city.description as city", "province.description as province")
+      .first();
+    const student = await db("sfa.student")
+      .innerJoin("sfa.person", "person.id", "student.person_id")
+      .where({ "student.id": student_id })
+      .first();
+
+    if (!update) return res.status(404).send("Vendor Update not found");
+    if (!student) return res.status(404).send("Student not found");
+
+    student.vendor_id = student.vendor_id ?? "____________________";
+
+    const pdfData = {
+      API_PORT: API_PORT,
+      update,
+      student,
+      user: req.user,
+      department: "Department: E-13A",
+      date: moment().format("D MMM YYYY"),
+    };
+    const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
+    const data = await h.renderView(__dirname + "/../../templates/admin/vendor/vendor-request.handlebars", {
+      ...pdfData,
+    });
+
+    if (format == "html") return res.send(data);
+
+    let name = `VendorRequest-${student.first_name}${student.last_name}`.replace(/\s/g, "");
+
+    const footerTemplate = `<div style="width: 100%; text-align: left; font-size: 11px; padding: 5px 0; border-top: 1px solid #ccc; margin: 0 40px 10px; font-family: Calibri;">
+      <div style="float:left">${moment().format("MMMM D, YYYY")}</div><div style="float:right">Page 1 of 1</div>
+    </div>`;
+
+    let pdf = await generatePDF(data, "letter", false, footerTemplate);
+    res.setHeader("Content-disposition", `attachment; filename="${name}.pdf"`);
+    res.setHeader("Content-type", "application/pdf");
+    res.send(pdf);
+  }
+);
+
+studentRouter.put(
   "/:student_id/vendor-update/:id",
   [param("student_id").isInt().notEmpty(), param("id").isInt().notEmpty()],
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
-    try {
-      const { student_id, id } = req.params;
-      const { data } = req.body;
+    const { student_id, id } = req.params;
+    const { update_completed_date } = req.body;
 
-      const student: any = await db("sfa.student").where({ id: student_id }).first();
+    await db("sfa.vendor_update").where({ id, student_id }).update({ update_completed_date });
 
-      if (student) {
-        if (Object.keys(data).some((value) => value === "address_type_id")) {
-          if (!data.address_type_id) {
-            return res.json({ messages: [{ variant: "error", text: "Address Type is required" }] });
-          }
-        }
-        const resUpdate = await db("sfa.vendor_update")
-          .where("id", id)
-          .where("student_id", student_id)
-          .update({ ...data, student_id });
-
-        return resUpdate > 0
-          ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
-          : res.json({ messages: [{ variant: "error", text: "Failed" }] });
-      }
-
-      return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
-    } catch (error) {
-      console.error(error);
-      return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
-    }
+    res.json({ messages: [{ variant: "success", text: "Saved" }] });
   }
 );
 

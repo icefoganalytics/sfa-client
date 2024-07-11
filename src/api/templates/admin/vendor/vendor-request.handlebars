@@ -1,0 +1,100 @@
+<style>
+  table td{ font-size: 1.1rem}
+</style>
+<div style="font-size: 1.1rem">
+  <div class="header" style="text-align: right; font-size: .9rem; margin-top: -60px">
+    GOVERNMENT OF YUKON, DEPARTMENT OF EDUCATION
+    <br />
+    STUDENT FUNDING PROGRAMS
+    <div class="mt-4" style="font-size: 1.4rem; font-weight: 700">
+      Accounts Payable Vendor Update Request
+    </div>
+    <hr style="border-color: black; border-bottom: 0; margin-bottom: 25px; margin-top: 15px;" />
+  </div>
+
+  <div style="margin-bottom: 15px">
+    VENDOR ID - ASSIGNED BY FINANCE:
+    <strong>{{student.vendor_id}}</strong>
+  </div>
+  <div>
+    Request to:
+    <ul style="margin-top: 5px">
+      {{#if update.is_address_update}}
+        <li>Update VID address to the following</li>
+      {{/if}}
+
+      {{#if update.is_banking_update}}
+        <li>Update VID's banking information to the new one attached</li>
+      {{/if}}
+
+      {{#if update.is_direct_deposit_update}}
+        <li>Set up VID for direct deposit with the banking information attached</li>
+      {{/if}}
+
+      {{#if update.is_name_change_update}}
+        <li>Change the name of the Vendor due to specific circumstances:
+          <strong>{{update.name_change_comment}}</strong>
+        </li>
+      {{/if}}
+    </ul>
+  </div>
+
+  <table>
+    <tr>
+      <td style="width: 140px">Vendor Name:</td>
+      <td>{{student.first_name}} {{student.initials}} {{student.last_name}}</td>
+    </tr>
+    <tr>
+      <td>Address:</td>
+      <td>{{update.address}}</td>
+    </tr>
+    <tr>
+      <td>City:</td>
+      <td>{{update.city}}</td>
+    </tr>
+    <tr>
+      <td>Province/Territory:</td>
+      <td>{{update.province}}</td>
+    </tr>
+    <tr>
+      <td>Postal Code:</td>
+      <td>{{update.postal_code}}</td>
+    </tr>
+    <tr>
+      <td>Telephone:</td>
+      <td>{{student.telephone}}</td>
+    </tr>
+    <tr>
+      <td>Email:</td>
+      <td>{{student.email}}</td>
+    </tr>
+    <tr>
+      <td>Employee:</td>
+      <td>No</td>
+    </tr>
+  </table>
+
+  <table style="width: 100%; margin-top: 80px">
+    <tr>
+      <td style="width: 140px">Prepared By:</td>
+      <td style="border-bottom: 1px black solid;">{{user.first_name}}
+        {{user.last_name}}
+        -
+        {{department}}</td>
+      <td style="width: 30px"></td>
+      <td style="width: 45px">Date:</td>
+      <td style="border-bottom: 1px black solid; width: 100px">{{date}}</td>
+      <td style=""></td>
+    </tr>
+    <tr><td colspan="6">&nbsp;</td></tr>
+
+    <tr class="">
+      <td style="margin-top: 20px">Financial Approval:</td>
+      <td style="border-bottom: 1px black solid;"></td>
+      <td style=""></td>
+      <td style="">Date:</td>
+      <td style="border-bottom: 1px black solid; "></td>
+      <td></td>
+    </tr>
+  </table>
+</div>
