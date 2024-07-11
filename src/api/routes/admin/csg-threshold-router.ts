@@ -665,14 +665,11 @@ csgThresholdRouter.post(
         transaction_number = (await db.raw(`select next value for sfa.csl_transaction_seq as nextval`))[0].nextval;
 
         let childDisbursements = await db("sfa.funding_request")
-          .select("disbursement.*")
-          .where({ application_id })
-          .whereIn("request_type_id", [CSGPT_REQUEST_TYPE_ID, CSGD_REQUEST_TYPE_ID, CSPTDEP_REQUEST_TYPE_ID])
           .join("sfa.disbursement", "funding_request.id", "disbursement.funding_request_id")
-          .whereNull("disbursement.transaction_number")
-          .orWhere("disbursement.transaction_number", "");
-
-        // this is moving to some other people's disbursements
+          .select("disbursement.*")
+          .whereIn("request_type_id", [CSGPT_REQUEST_TYPE_ID, CSGD_REQUEST_TYPE_ID, CSPTDEP_REQUEST_TYPE_ID])
+          .where({ application_id })
+          .whereRaw(`(disbursement.transaction_number IS NULL OR disbursement.transaction_number = '')`);
 
         for (let cd of childDisbursements) {
           await db("sfa.disbursement").where({ id: cd.id }).update({ transaction_number });
@@ -802,12 +799,12 @@ csgThresholdRouter.put(
     if (fundingRequest && fundingRequest.request_type_id == CSLPT_REQUEST_TYPE_ID) {
       if (generateTransactions === true) {
         let childDisbursements = await db("sfa.funding_request")
+          .join("sfa.disbursement", "funding_request.id", "disbursement.funding_request_id")
           .select("disbursement.*")
           .where({ application_id })
           .whereIn("request_type_id", [CSGPT_REQUEST_TYPE_ID, CSGD_REQUEST_TYPE_ID, CSPTDEP_REQUEST_TYPE_ID])
-          .join("sfa.disbursement", "funding_request.id", "disbursement.funding_request_id")
-          .whereNull("disbursement.transaction_number")
-          .orWhere("disbursement.transaction_number", "");
+          .whereRaw(`(disbursement.transaction_number IS NULL OR disbursement.transaction_number = '')`);
+
         for (let cd of childDisbursements) {
           await db("sfa.disbursement").where({ id: cd.id }).update({ transaction_number });
         }
