@@ -346,8 +346,7 @@ export default class ReportingService {
 
       let csl_family_size = 99;
 
-
-      row.csl_family_size = 99
+      row.csl_family_size = 99;
     }
 
     return results;
@@ -378,6 +377,50 @@ export default class ReportingService {
     );
 
     return results;
+  }
+
+  static async runVendorUpdateReport({ format }: { format: string }): Promise<any[]> {
+    let results = await db.raw(
+      `SELECT vendor_update.id, person.first_name, person.last_name, vendor_update.vendor_id, vendor_update.address, city.description as city, province.description as province, 
+        postal_code, country.description as country, vendor_update.telephone, vendor_update.email
+      FROM [sfa].[vendor_update]
+        LEFT JOIN sfa.[city] on city.id = [vendor_update].city_id
+        LEFT JOIN sfa.[province] on province.id = [vendor_update].province_id
+        LEFT JOIN sfa.[country] on country.id = [vendor_update].country_id
+        LEFT JOIN sfa.[student] on student.id = [vendor_update].student_id
+        LEFT JOIN sfa.[person] on person.id = [student].person_id
+      WHERE update_requested_date IS NULL`
+    );
+
+    const val = results.map((r: any) => {
+      return {
+        "Business Name": `${r.firstName} ${r.lastName}`,
+        "Business Name 2": "",
+        "Corporate Registry Number": "",
+        "Existing Vendor id": r.vendorId ?? "",
+        "Entity Type": "Individual",
+        "Business type": "",
+        Street: r.address,
+        City: r.city,
+        Province: r.province,
+        "Postal Code": r.postalCode,
+        Country: r.country,
+        "Alt Address": "",
+        "Phone number": r.telephone,
+        "Cellphone number": "",
+        Email: r.email,
+      };
+    });
+
+    if (format == "csv") {
+      //since it's a CSV, we need to update the items so they don't show up multiple times
+
+      for (let item of results) {
+        await db("vendor_update").where({ id: item.id }).update({ update_requested_date: new Date() });
+      }
+    }
+
+    return val;
   }
 
   static async generateAs({

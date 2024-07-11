@@ -3,15 +3,22 @@ import puppeteer, { PaperFormat } from "puppeteer";
 export async function generatePDF(
   content: string,
   format: PaperFormat = "letter",
-  landscape: boolean = true
+  landscape: boolean = true,
+  footerTemplate: string = ""
 ): Promise<Buffer> {
   const browser = await puppeteer.launch({
     headless: "new",
-    args: ["--no-sandbox", "--headless", "--disable-gpu"]
+    args: ["--no-sandbox", "--headless", "--disable-gpu"],
   });
   const page = await browser.newPage();
   await page.setContent(content);
-  const pdf = await page.pdf({ format, landscape, preferCSSPageSize: true });
+  const pdf = await page.pdf({
+    format,
+    landscape,
+    preferCSSPageSize: true,
+    footerTemplate,
+    displayHeaderFooter: true,
+  });
   await browser.close();
   return Promise.resolve(pdf);
 }

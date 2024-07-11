@@ -467,6 +467,20 @@ const state = {
         { text: "Vendor ID", value: "vendorId" },
       ],
     },
+
+    {
+      text: "Vendor Update Report",
+      url: "/vendor-update",
+      parameters: [],
+      downloadFormat: [".csv"],
+      headers: [
+        { text: "Student", value: "Business Name" },
+        { text: "Address", value: "Street" },
+        { text: "City", value: "City" },
+        { text: "Province", value: "Province" },
+        { text: "Vendor Id", value: "Existing Vendor id" },
+      ],
+    },
   ],
   selectedReport: undefined,
   reportResults: undefined,

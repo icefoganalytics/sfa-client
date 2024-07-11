@@ -144,3 +144,7 @@ td.narrow {
 .narrowInput .v-input__slot {
   padding: 0 5px !important;
 }
+
+.v-data-table.row-clickable > .v-data-table__wrapper > table > tbody > tr:hover > td {
+  cursor: pointer;
+}
