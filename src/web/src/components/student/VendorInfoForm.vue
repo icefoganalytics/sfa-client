@@ -53,7 +53,13 @@
       >
       <v-card-text>
         <div>
-          <v-data-table :items="student.vendor_updates" :headers="headers" @click:row="requestRowClick" class="row-clickable">
+          <v-data-table
+            :items="student.vendor_updates"
+            :headers="headers"
+            @click:row="requestRowClick"
+            class="row-clickable"
+          >
+            <template #item.created_date="{item}">{{ formatDate(item.created_date) }}</template>
             <template #item.update_requested_date="{item}">{{ formatDate(item.update_requested_date) }}</template>
             <template #item.update_completed_date="{item}">{{ formatDate(item.update_completed_date) }}</template>
             <template #item.status="{item}">{{ generateStatus(item) }}</template>
@@ -155,17 +161,20 @@
       </v-toolbar>
       <v-card>
         <v-card-text class="pt-4" v-if="editRecord">
-          <div v-if="!editRecord.update_completed_date">
+          <div v-if="!editRecord.update_completed_date && editRecord.update_requested_date">
             <p>Once this request has been completed and the verified, please click the 'Mark Complete'</p>
 
             <p>
-              This request was created on {{ formatDate(editRecord.update_requested_date) }} and is currently
+              This request was sent on {{ formatDate(editRecord.update_requested_date) }} and is currently
               {{ generateStatus(editRecord) }}.
             </p>
             <v-btn color="primary" @click="markCompleteClick(editRecord)">Mark Complete</v-btn>
           </div>
-          <div v-else>
+          <div v-else-if="editRecord.update_completed_date">
             <p class="mb-0">This request was completed on {{ formatDate(editRecord.update_completed_date) }}</p>
+          </div>
+          <div v-else>
+            <p class="mb-0">This request was created on {{ formatDate(editRecord.created_date) }} but hasn't yet been sent to finance.</p>
           </div>
         </v-card-text>
       </v-card>
@@ -215,6 +224,7 @@ export default {
     headers: [
       { text: "Status", value: "status" },
       { text: "Vendor ID", value: "vendor_id" },
+      { text: "Created On", value: "created_date" },
       { text: "Requested On", value: "update_requested_date" },
       { text: "Completed On", value: "update_completed_date" },
       { text: "", value: "download" },
@@ -364,8 +374,6 @@ export default {
       return "Pending";
     },
     markCompleteClick(item) {
-      alert("not yet implemented");
-
       axios
         .put(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, { update_completed_date: new Date() })
         .then((res) => {

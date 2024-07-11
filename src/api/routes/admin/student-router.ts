@@ -1089,7 +1089,6 @@ studentRouter.post(
           address_type_id: vendorAddress.address_type_id,
           vendor_id: student.vendor_id,
           created_date: new Date(),
-          update_requested_date: new Date(),
           is_address_update: data.is_address_update,
           is_banking_update: data.is_banking_update,
           is_direct_deposit_update: data.is_direct_deposit_update,

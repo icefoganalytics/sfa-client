@@ -178,6 +178,7 @@ adminRouter.use("/reporting/nars2022disrcl/:academic_year_id", routedTo(Reportin
 adminRouter.use("/reporting/step/:academic_year_id", routedTo(ReportingController, "runStepReport"));
 adminRouter.use("/reporting/approvedFunding/:academic_year_id", routedTo(ReportingController, "runApprovedFundingReport"));
 adminRouter.use("/reporting/t4a/:tax_year", routedTo(ReportingController, "runT4AReport"));
+adminRouter.use("/reporting/vendor-update", routedTo(ReportingController, "runVendorUpdateReport"));
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);
 adminRouter.use("/yea-import", yeaImportRouter);

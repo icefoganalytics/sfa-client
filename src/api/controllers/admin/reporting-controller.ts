@@ -265,6 +265,21 @@ export default class ReportingController extends BaseController {
       }
     });
   }
+
+  async runVendorUpdateReport() {
+    return ReportingService.runVendorUpdateReport({ format: this.format ?? "json" }).then(async (reportData) => {
+      if (this.format == "json") {
+        this.response.json(reportData);
+      } else {
+        let csv = unparse(reportData, {
+          quotes: true,
+        });
+        this.response.setHeader("Content-disposition", `attachment; filename="Vendor request multi-vendor.csv"`);
+        this.response.setHeader("Content-type", "text/csv");
+        this.response.send(csv);
+      }
+    });
+  }
 }
 
 function formatMoney(input: number) {
