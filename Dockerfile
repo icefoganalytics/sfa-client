@@ -45,6 +45,7 @@ RUN npm run build
 
 COPY --chown=node:node src/api/templates/* /home/node/app/dist/templates/
 COPY --chown=node:node src/api/templates/admin/* /home/node/app/dist/templates/admin
+COPY --chown=node:node src/api/templates/admin/vendor/* /home/node/app/dist/templates/admin/vendor
 COPY --chown=node:node src/api/templates/email/* /home/node/app/dist/templates/email
 COPY --chown=node:node src/api/templates/layouts/* /home/node/app/dist/templates/layouts
 COPY --chown=node:node src/api/web/*.png /home/node/app/dist/web/
