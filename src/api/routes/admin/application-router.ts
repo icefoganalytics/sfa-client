@@ -7,6 +7,7 @@ import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { uniq, parseInt, min, get, isArray, isEmpty } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
+import { weeksBetween } from "@/utils/date-utils";
 
 const db = knex(DB_CONFIG);
 export const applicationRouter = express.Router();
@@ -2010,6 +2011,7 @@ applicationRouter.get(
             );
 
             item.read_only_data = readOnlyData?.[0] || {};
+            item.read_only_data.assessed_weeks = weeksBetween(application.classes_start_date, application.classes_end_date);
 
             const yea_balance = item.read_only_data.yea_earned - item.read_only_data.yea_used;
             const unused_receipts = min([
