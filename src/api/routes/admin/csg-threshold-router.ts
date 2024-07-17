@@ -275,6 +275,8 @@ csgThresholdRouter.get(
       funding_request.assessments = assessments;
       let assessment = null;
 
+      let msfaa = await db("sfa.msfaa").where({ application_id }).first();
+
       // if one is requested, return that, otherwise return the most recent
       if (assessment_id) {
         assessment = await db("sfa.assessment")
@@ -302,7 +304,7 @@ csgThresholdRouter.get(
           if (assessment) {
             assessment = await repo.loadExisting(assessment, application_id);
             delete (assessment as any).id;
-            return res.json({ data: { funding_request, assessment, disbursements: [] } });
+            return res.json({ data: { funding_request, assessment, disbursements: [], msfaa } });
           }
         } else {
           assessment = await repo.loadExisting(assessment, funding_request.application_id);
@@ -315,7 +317,7 @@ csgThresholdRouter.get(
               })
               .orderBy("issue_date")
               .orderBy("id");
-            return res.json({ data: { funding_request, assessment, disbursements } });
+            return res.json({ data: { funding_request, assessment, disbursements, msfaa } });
           }
         }
       } catch (error) {
