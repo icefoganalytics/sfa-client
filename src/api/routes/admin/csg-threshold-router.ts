@@ -244,6 +244,87 @@ csgThresholdRouter.post(
     if (newAssessment) {
       let inserted = await repo.insert(newAssessment);
       let loaded = await repo.loadExisting(inserted, application_id);
+      let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
+
+      const relevantForMSFAA = [CSLPT_REQUEST_TYPE_ID, CSLFT_REQUEST_TYPE_ID];
+
+      if (fundingRequest && relevantForMSFAA.includes(fundingRequest.request_type_id)) {
+        const is_full_time = fundingRequest.request_type_id == CSLFT_REQUEST_TYPE_ID;
+        let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time });
+
+        if (msfaaForApplication.length == 0) {
+          let app = await db("sfa.application").where({ id: application_id }).select("student_id").first();
+
+          if (app) {
+            let msfaaForStudent = await db("sfa.msfaa")
+              .where({ student_id: app.student_id, is_full_time })
+              .whereNull("cancel_date");
+
+            if (msfaaForStudent.length > 0) {
+              let relevantIds = new Array<number>();
+
+              for (let msfaa of msfaaForStudent) {
+                let msfaaApp = await db("sfa.application").where({ id: msfaa.application_id }).first();
+
+                if (msfaaApp) {
+                  if (moment(new Date()).diff(msfaaApp.classes_end_date, "year") > 2) {
+                    await db("sfa.msfaa").where({ id: msfaa.id }).update({
+                      cancel_date: new Date(),
+                      cancel_reason: "> 2 yrs out of school",
+                      msfaa_status: "Cancelled",
+                    });
+                    console.log("CANCELLEING EXPIRED MSFAA", msfaa.id);
+                  } else {
+                    relevantIds.push(msfaa.id);
+                  }
+                }
+              }
+
+              if (relevantIds.length > 0) {
+                relevantIds = sortBy(relevantIds, "desc").reverse();
+                let first = true;
+
+                for (let relevantId of relevantIds) {
+                  if (first) {
+                    await db("sfa.msfaa").where({ id: relevantId }).update({
+                      application_id,
+                    });
+                    console.log("MOVING MSFAA", relevantId, application_id);
+                  } else {
+                    await db("sfa.msfaa").where({ id: relevantId }).update({
+                      cancel_date: new Date(),
+                      cancel_reason: "Duplicate",
+                      msfaa_status: "Cancelled",
+                    });
+                    console.log("CANCELLING DUP MSFAA", relevantId);
+                  }
+
+                  first = false;
+                }
+              }
+            }
+
+            msfaaForStudent = await db("sfa.msfaa")
+              .where({ student_id: app.student_id, is_full_time })
+              .whereNull("cancel_date");
+
+            if (msfaaForStudent.length == 0) {
+              await db("sfa.msfaa").insert({
+                application_id,
+                student_id: app.student_id,
+                msfaa_status: "Pending",
+                is_full_time,
+              });
+              console.log("ADDING NEW MSFAA", {
+                application_id,
+                student_id: app.student_id,
+                msfaa_status: "Pending",
+                is_full_time,
+              });
+            }
+          }
+        }
+      }
 
       return res.status(200).json({ data: loaded });
     } else {
@@ -699,31 +780,25 @@ csgThresholdRouter.post(
         }
       }
 
-      if (fundingRequest && fundingRequest.request_type_id == CSLPT_REQUEST_TYPE_ID) {
-        let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time: false });
+      console.log("HERE 1");
+
+      const relevantForMSFAA = [CSLPT_REQUEST_TYPE_ID, CSLFT_REQUEST_TYPE_ID];
+
+      if (fundingRequest && relevantForMSFAA.includes(fundingRequest.request_type_id)) {
+        console.log("HERE 2");
+
+        const is_full_time = fundingRequest.request_type_id == CSLFT_REQUEST_TYPE_ID;
+        let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time });
 
         if (msfaaForApplication.length == 0) {
           let app = await db("sfa.application").where({ id: application_id }).select("student_id").first();
 
           if (app) {
             let msfaaForStudent = await db("sfa.msfaa")
-              .where({ student_id: app.student_id, is_full_time: false })
+              .where({ student_id: app.student_id, is_full_time })
               .whereNull("cancel_date");
 
-            if (msfaaForStudent.length == 0) {
-              await db("sfa.msfaa").insert({
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time: false,
-              });
-              console.log("ADDING NEW MSFAA", {
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time: false,
-              });
-            } else {
+            if (msfaaForStudent.length > 0) {
               let relevantIds = new Array<number>();
 
               for (let msfaa of msfaaForStudent) {
@@ -765,6 +840,25 @@ csgThresholdRouter.post(
                   first = false;
                 }
               }
+            }
+
+            msfaaForStudent = await db("sfa.msfaa")
+              .where({ student_id: app.student_id, is_full_time })
+              .whereNull("cancel_date");
+
+            if (msfaaForStudent.length == 0) {
+              await db("sfa.msfaa").insert({
+                application_id,
+                student_id: app.student_id,
+                msfaa_status: "Pending",
+                is_full_time,
+              });
+              console.log("ADDING NEW MSFAA", {
+                application_id,
+                student_id: app.student_id,
+                msfaa_status: "Pending",
+                is_full_time,
+              });
             }
           }
         }

@@ -1139,6 +1139,7 @@ studentRouter.get(
       user: req.user,
       department: "Department: E-13A",
       date: moment().format("D MMM YYYY"),
+      isCreate: student.vendor_id.startsWith("_"),
     };
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
     const data = await h.renderView(__dirname + "/../../templates/admin/vendor/vendor-request.handlebars", {
