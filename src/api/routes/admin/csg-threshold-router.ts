@@ -798,20 +798,7 @@ csgThresholdRouter.post(
               .where({ student_id: app.student_id, is_full_time })
               .whereNull("cancel_date");
 
-            if (msfaaForStudent.length == 0) {
-              await db("sfa.msfaa").insert({
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time,
-              });
-              console.log("ADDING NEW MSFAA", {
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time,
-              });
-            } else {
+            if (msfaaForStudent.length > 0) {
               let relevantIds = new Array<number>();
 
               for (let msfaa of msfaaForStudent) {
@@ -853,6 +840,25 @@ csgThresholdRouter.post(
                   first = false;
                 }
               }
+            }
+
+            msfaaForStudent = await db("sfa.msfaa")
+              .where({ student_id: app.student_id, is_full_time })
+              .whereNull("cancel_date");
+
+            if (msfaaForStudent.length == 0) {
+              await db("sfa.msfaa").insert({
+                application_id,
+                student_id: app.student_id,
+                msfaa_status: "Pending",
+                is_full_time,
+              });
+              console.log("ADDING NEW MSFAA", {
+                application_id,
+                student_id: app.student_id,
+                msfaa_status: "Pending",
+                is_full_time,
+              });
             }
           }
         }
