@@ -224,7 +224,7 @@ export class AssessmentCslftRepositoryV2 {
       uncapped_expenses.reduce((a: number, i: any) => a + i.amount, 0);
 
     input.parent_income_total = input.parent1_income + input.parent2_income;
-    input.parent_tax_total = input.parent1_tax_paid + input.parent1_tax_paid;
+    input.parent_tax_total = input.parent1_tax_paid + input.parent2_tax_paid;
     input.parent_net_income_total = input.parent_income_total - input.parent_tax_total;
 
     if (this.application.csl_classification == 1) {
