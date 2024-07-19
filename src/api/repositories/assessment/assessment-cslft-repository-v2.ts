@@ -314,6 +314,8 @@ export class AssessmentCslftRepositoryV2 {
 
             console.log("INSTEAD USING BASIC: ", contribution);
           }
+        } else {
+          input.parent_contribution = 0;
         }
       }
     }
