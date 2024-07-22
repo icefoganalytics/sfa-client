@@ -208,6 +208,10 @@ export class PortalStudentService {
     return db("person").withSchema(schema).where({ id: person_id }).update({ telephone, email });
   }
 
+  async updateEmail({ person_id, email }: any): Promise<any> {
+    return db("person").withSchema(schema).where({ id: person_id }).update({ email });
+  }
+
   async getAddresses(person_id: number): Promise<any[]> {
     return db("person_address")
       .withSchema(schema)

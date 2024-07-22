@@ -79,6 +79,9 @@
           <template v-slot:item.institution_city_id="{ item }">
             {{ cities.find((c) => c.id == item.institution_city_id)?.description }} ({{item.institution_city_id}})
           </template>
+          <template v-slot:item.study_field_id="{ item }">
+            {{ studyFields.find((c) => c.id == item.study_field_id)?.description }} ({{item.study_field_id}})
+          </template>
         </v-data-table>
       </v-card-text>
     </v-card>
@@ -165,6 +168,44 @@
                   hide-details
                 />
               </div>
+              <div v-else-if="header.value == 'study_field_id'">
+                <v-autocomplete
+                  :items="studyFields"
+                  v-model="selectedItem[header.value]"
+                  item-value="id"
+                  item-text="description"
+                  label="Study Field"
+                  dense
+                  outlined
+                  hide-details
+                />
+              </div>
+              <div v-else-if="header.value == 'show_online'">
+                <v-autocomplete
+                  :items="[true, false]"
+                  v-model="selectedItem[header.value]"
+                  item-value="id"
+                  item-text="description"
+                  label="Show Online"
+                  dense
+                  outlined
+                  hide-details
+                />
+              </div>
+              <div v-else-if="header.value == 'is_active'">
+                <v-autocomplete
+                  :items="[true, false]"
+                  v-model="selectedItem[header.value]"
+                  item-value="id"
+                  item-text="description"
+                  label="Is Active"
+                  dense
+                  outlined
+                  hide-details
+                />
+              </div>
+
+
 
               <v-text-field
                 v-else
@@ -202,7 +243,7 @@ export default {
     ...mapGetters("catalogStore", ["reportHeaders", "reportData"]),
     ...mapState("catalogStore", ["catalogOptions", "selectedCatalog", "selectedCatalogResults"]),
     ...mapState("academicYearStore", ["academicYears"]),
-    ...mapGetters(["provinces", "studentCategories", "cities"]),
+    ...mapGetters(["provinces", "studentCategories", "cities", "studyFields"]),
 
     canadianProvinces() {
       if (this.provinces) {
@@ -221,10 +262,11 @@ export default {
     await this.setProvinces();
     await this.setCities(false);
     await this.setStudentCategories(false);
+    await this.setStudyFields(false);
     await await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
   },
   methods: {
-    ...mapActions(["setProvinces", "setStudentCategories", "setCities"]),
+    ...mapActions(["setProvinces", "setStudentCategories", "setCities", "setStudyFields"]),
     ...mapActions("academicYearStore", ["loadAcademicYears"]),
     ...mapActions("catalogStore", ["loadCatalog", "setCatalog", "saveCatalog"]),
 
