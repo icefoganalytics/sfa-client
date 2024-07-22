@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ADMIN_CATALOG_URL } from "@/urls";
-import { cloneDeep, isArray } from "lodash";
+import { cloneDeep, isArray, isNil } from "lodash";
 
 const state = {
   catalogOptions: [
@@ -115,7 +115,6 @@ const state = {
         { text: "max_amount", value: "max_amount" },
       ],
     },
-
     {
       text: "Transportation",
       url: `${ADMIN_CATALOG_URL}/transportation`,
@@ -125,6 +124,18 @@ const state = {
         { text: "institution_city", value: "institution_city_id" },
         { text: "travel_allowance_amount", value: "travel_allowance_amount" },
         { text: "airfare_amount", value: "airfare_amount" },
+      ],
+    },
+
+    {
+      text: "Study Area",
+      url: `${ADMIN_CATALOG_URL}/study_area`,
+      headers: [
+        { text: "id", value: "id" },
+        { text: "study_field_id", value: "study_field_id" },
+        { text: "description", value: "description" },
+        { text: "show_online", value: "show_online" },
+        { text: "is_active", value: "is_active" },
       ],
     },
   ],
@@ -179,7 +190,7 @@ const actions = {
       let url = state.selectedCatalog.url;
 
       if (url) {
-        if (item.id && item.id > -1) {
+        if (!isNil(item.id) && item.id > -1) {
           const id = item.id;
           delete item.id;
 

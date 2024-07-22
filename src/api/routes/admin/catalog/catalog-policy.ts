@@ -10,6 +10,7 @@ export class CatalogPolicy {
     ygCostPolicy,
     parentContributionPolicy,
     transportationPolicy,
+    studyAreaPolicy,
   ];
 
   get(tableName: string) {
@@ -73,6 +74,12 @@ const parentContributionPolicy = {
 };
 const transportationPolicy = {
   tableName: "transportation",
+  schema: "sfa",
+  readonly: false,
+  idColumn: "id",
+};
+const studyAreaPolicy = {
+  tableName: "study_area",
   schema: "sfa",
   readonly: false,
   idColumn: "id",
