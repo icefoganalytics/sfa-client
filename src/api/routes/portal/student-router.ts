@@ -110,6 +110,23 @@ portalStudentRouter.put("/:sub", async (req: Request, res: Response) => {
   res.status(404).send();
 });
 
+portalStudentRouter.put("/:sub/email", async (req: Request, res: Response) => {
+  const { sub } = req.params;
+  const { email } = req.body;
+
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let result = await studentService.updateEmail({
+      person_id: student.person_id,
+      email,
+    });
+
+    return res.json({ data: result });
+  }
+  res.status(404).send();
+});
+
 portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { sin, date_of_birth, first_name, last_name, email_address, home_phone, home_postal, year_completed } =
