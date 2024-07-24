@@ -79,6 +79,7 @@ csgThresholdRouter.put(
       spouse_contribution_override,
       parent_contribution_override,
       disbursements,
+      generateTransaction,
     } = req.body;
 
     if (disbursements && disbursements.length > 0) {
@@ -115,6 +116,10 @@ csgThresholdRouter.put(
 
     let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
     let assessment = await db("sfa.assessment").where({ id: assessment_id }).first();
+
+    if (generateTransaction === true) {
+      await generateOrConnectMSFAA(fundingRequest, fundingRequest.application_id);
+    }
 
     assessment = Object.assign(assessment, updateValue);
 
@@ -236,96 +241,13 @@ csgThresholdRouter.post(
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const { application_id, funding_request_id } = req.params;
-    console.log("CREATE ASSESSMENT");
 
     let repo = new AssessmentCslftRepositoryV2(db);
-
     let newAssessment = await repo.create(funding_request_id);
+
     if (newAssessment) {
       let inserted = await repo.insert(newAssessment);
       let loaded = await repo.loadExisting(inserted, application_id);
-      let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
-
-      const relevantForMSFAA = [CSLPT_REQUEST_TYPE_ID, CSLFT_REQUEST_TYPE_ID];
-
-      if (fundingRequest && relevantForMSFAA.includes(fundingRequest.request_type_id)) {
-        const is_full_time = fundingRequest.request_type_id == CSLFT_REQUEST_TYPE_ID;
-        let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time });
-
-        if (msfaaForApplication.length == 0) {
-          let app = await db("sfa.application").where({ id: application_id }).select("student_id").first();
-
-          if (app) {
-            let msfaaForStudent = await db("sfa.msfaa")
-              .where({ student_id: app.student_id, is_full_time })
-              .whereNull("cancel_date");
-
-            if (msfaaForStudent.length > 0) {
-              let relevantIds = new Array<number>();
-
-              for (let msfaa of msfaaForStudent) {
-                let msfaaApp = await db("sfa.application").where({ id: msfaa.application_id }).first();
-
-                if (msfaaApp) {
-                  if (moment(new Date()).diff(msfaaApp.classes_end_date, "year") > 2) {
-                    await db("sfa.msfaa").where({ id: msfaa.id }).update({
-                      cancel_date: new Date(),
-                      cancel_reason: "> 2 yrs out of school",
-                      msfaa_status: "Cancelled",
-                    });
-                    console.log("CANCELLEING EXPIRED MSFAA", msfaa.id);
-                  } else {
-                    relevantIds.push(msfaa.id);
-                  }
-                }
-              }
-
-              if (relevantIds.length > 0) {
-                relevantIds = sortBy(relevantIds, "desc").reverse();
-                let first = true;
-
-                for (let relevantId of relevantIds) {
-                  if (first) {
-                    await db("sfa.msfaa").where({ id: relevantId }).update({
-                      application_id,
-                    });
-                    console.log("MOVING MSFAA", relevantId, application_id);
-                  } else {
-                    await db("sfa.msfaa").where({ id: relevantId }).update({
-                      cancel_date: new Date(),
-                      cancel_reason: "Duplicate",
-                      msfaa_status: "Cancelled",
-                    });
-                    console.log("CANCELLING DUP MSFAA", relevantId);
-                  }
-
-                  first = false;
-                }
-              }
-            }
-
-            msfaaForStudent = await db("sfa.msfaa")
-              .where({ student_id: app.student_id, is_full_time })
-              .whereNull("cancel_date");
-
-            if (msfaaForStudent.length == 0) {
-              await db("sfa.msfaa").insert({
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time,
-              });
-              console.log("ADDING NEW MSFAA", {
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time,
-              });
-            }
-          }
-        }
-      }
-
       return res.status(200).json({ data: loaded });
     } else {
       return res.status(500).send();
@@ -757,6 +679,8 @@ csgThresholdRouter.post(
         for (let cd of childDisbursements) {
           await db("sfa.disbursement").where({ id: cd.id }).update({ transaction_number });
         }
+
+        await generateOrConnectMSFAA(fundingRequest, application_id);
       }
     }
 
@@ -777,90 +701,6 @@ csgThresholdRouter.post(
         } else {
           disb.transaction_number = transaction_number;
           await db("sfa.disbursement").insert(disb);
-        }
-      }
-
-      console.log("HERE 1");
-
-      const relevantForMSFAA = [CSLPT_REQUEST_TYPE_ID, CSLFT_REQUEST_TYPE_ID];
-
-      if (fundingRequest && relevantForMSFAA.includes(fundingRequest.request_type_id)) {
-        console.log("HERE 2");
-
-        const is_full_time = fundingRequest.request_type_id == CSLFT_REQUEST_TYPE_ID;
-        let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time });
-
-        if (msfaaForApplication.length == 0) {
-          let app = await db("sfa.application").where({ id: application_id }).select("student_id").first();
-
-          if (app) {
-            let msfaaForStudent = await db("sfa.msfaa")
-              .where({ student_id: app.student_id, is_full_time })
-              .whereNull("cancel_date");
-
-            if (msfaaForStudent.length > 0) {
-              let relevantIds = new Array<number>();
-
-              for (let msfaa of msfaaForStudent) {
-                let msfaaApp = await db("sfa.application").where({ id: msfaa.application_id }).first();
-
-                if (msfaaApp) {
-                  if (moment(new Date()).diff(msfaaApp.classes_end_date, "year") > 2) {
-                    await db("sfa.msfaa").where({ id: msfaa.id }).update({
-                      cancel_date: new Date(),
-                      cancel_reason: "> 2 yrs out of school",
-                      msfaa_status: "Cancelled",
-                    });
-                    console.log("CANCELLEING EXPIRED MSFAA", msfaa.id);
-                  } else {
-                    relevantIds.push(msfaa.id);
-                  }
-                }
-              }
-
-              if (relevantIds.length > 0) {
-                relevantIds = sortBy(relevantIds, "desc").reverse();
-                let first = true;
-
-                for (let relevantId of relevantIds) {
-                  if (first) {
-                    await db("sfa.msfaa").where({ id: relevantId }).update({
-                      application_id,
-                    });
-                    console.log("MOVING MSFAA", relevantId, application_id);
-                  } else {
-                    await db("sfa.msfaa").where({ id: relevantId }).update({
-                      cancel_date: new Date(),
-                      cancel_reason: "Duplicate",
-                      msfaa_status: "Cancelled",
-                    });
-                    console.log("CANCELLING DUP MSFAA", relevantId);
-                  }
-
-                  first = false;
-                }
-              }
-            }
-
-            msfaaForStudent = await db("sfa.msfaa")
-              .where({ student_id: app.student_id, is_full_time })
-              .whereNull("cancel_date");
-
-            if (msfaaForStudent.length == 0) {
-              await db("sfa.msfaa").insert({
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time,
-              });
-              console.log("ADDING NEW MSFAA", {
-                application_id,
-                student_id: app.student_id,
-                msfaa_status: "Pending",
-                is_full_time,
-              });
-            }
-          }
         }
       }
     }
@@ -904,6 +744,8 @@ csgThresholdRouter.put(
         for (let cd of childDisbursements) {
           await db("sfa.disbursement").where({ id: cd.id }).update({ transaction_number });
         }
+
+        await generateOrConnectMSFAA(fundingRequest, application_id);
       }
     }
 
@@ -941,3 +783,85 @@ csgThresholdRouter.delete(
     res.status(202).send();
   }
 );
+
+async function generateOrConnectMSFAA(fundingRequest: any, application_id: number | string) {
+  const relevantForMSFAA = [CSLPT_REQUEST_TYPE_ID, CSLFT_REQUEST_TYPE_ID];
+
+  if (fundingRequest && relevantForMSFAA.includes(fundingRequest.request_type_id)) {
+    const is_full_time = fundingRequest.request_type_id == CSLFT_REQUEST_TYPE_ID;
+    let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time });
+
+    if (msfaaForApplication.length == 0) {
+      let app = await db("sfa.application").where({ id: application_id }).select("student_id").first();
+
+      if (app) {
+        let msfaaForStudent = await db("sfa.msfaa")
+          .where({ student_id: app.student_id, is_full_time })
+          .whereNull("cancel_date");
+
+        if (msfaaForStudent.length > 0) {
+          let relevantIds = new Array<number>();
+
+          for (let msfaa of msfaaForStudent) {
+            let msfaaApp = await db("sfa.application").where({ id: msfaa.application_id }).first();
+
+            if (msfaaApp) {
+              if (moment(new Date()).diff(msfaaApp.classes_end_date, "year") > 2) {
+                await db("sfa.msfaa").where({ id: msfaa.id }).update({
+                  cancel_date: new Date(),
+                  cancel_reason: "> 2 yrs out of school",
+                  msfaa_status: "Cancelled",
+                });
+                console.log("CANCELLEING EXPIRED MSFAA", msfaa.id);
+              } else {
+                relevantIds.push(msfaa.id);
+              }
+            }
+          }
+
+          if (relevantIds.length > 0) {
+            relevantIds = sortBy(relevantIds, "desc").reverse();
+            let first = true;
+
+            for (let relevantId of relevantIds) {
+              if (first) {
+                await db("sfa.msfaa").where({ id: relevantId }).update({
+                  application_id,
+                });
+                console.log("MOVING MSFAA", relevantId, application_id);
+              } else {
+                await db("sfa.msfaa").where({ id: relevantId }).update({
+                  cancel_date: new Date(),
+                  cancel_reason: "Duplicate",
+                  msfaa_status: "Cancelled",
+                });
+                console.log("CANCELLING DUP MSFAA", relevantId);
+              }
+
+              first = false;
+            }
+          }
+        }
+
+        msfaaForStudent = await db("sfa.msfaa")
+          .where({ student_id: app.student_id, is_full_time })
+          .whereNull("cancel_date");
+
+        if (msfaaForStudent.length == 0) {
+          await db("sfa.msfaa").insert({
+            application_id,
+            student_id: app.student_id,
+            msfaa_status: "Pending",
+            is_full_time,
+          });
+          console.log("ADDING NEW MSFAA", {
+            application_id,
+            student_id: app.student_id,
+            msfaa_status: "Pending",
+            is_full_time,
+          });
+        }
+      }
+    }
+  }
+}
