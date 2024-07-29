@@ -347,6 +347,7 @@ export class AssessmentCslftRepositoryV2 {
         }
       } else {
         input.student_contrib_exempt_reason = "Exempt: ";
+        total_contribution += input.student_other_resources;
 
         if (this.student.is_crown_ward) input.student_contrib_exempt_reason += "Student is crown ward";
         else if (this.application.is_disabled || this.application.is_perm_disabled)
@@ -923,6 +924,7 @@ export class AssessmentCslftRepositoryV2 {
 
     if (family_income <= income_threshold) {
       assess.student_expected_contribution = this.cslLookup.low_income_student_contrib_amount;
+
       /*  Math.min(
         this.cslLookup.low_income_student_contrib_amount ?? 0,
         ((this.cslLookup.low_income_student_contrib_amount ?? 0) / e_month) * (assess.study_weeks ?? 0) 
