@@ -936,6 +936,11 @@ export class AssessmentCslftRepositoryV2 {
 
       const weekly_calc = weekly_student_contrib * Math.min(assess.study_weeks ?? 0, max_weeks) ?? 0;
       assess.student_expected_contribution = Math.min(weekly_calc, this.cslLookup.student_contrib_max_amount ?? 0);
+
+      assess.student_expected_contribution = Math.max(
+        this.cslLookup.low_income_student_contrib_amount,
+        assess.student_expected_contribution
+      );
     }
 
     let previousContributions = await this.db
@@ -966,7 +971,7 @@ export class AssessmentCslftRepositoryV2 {
 
     assess.student_contribution =
       assess.student_contrib_exempt === "YES"
-        ? 0
+        ? student_other_resources
         : (assess.student_expected_contribution ?? 0) /* - assess.student_previous_contribution */ +
           student_other_resources;
 
