@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :class="instanceClass">
     <SideBarAdmin :show="hasSideBarAdmin" />
     <SnackBarAdmin />
 
@@ -107,9 +107,13 @@
 
     <v-app-bar app color="#fff" flat height="70" style="left: 0; border-bottom: 3px #f3b228 solid" clipped-right>
       <!-- <v-icon color="#f3b228" class="mr-5">{{ applicationIcon }}</v-icon> -->
-      <img src="/yukon.svg" style="margin: -8px 155px 0 0" height="44" />
+      <img src="/yukon.svg" style="margin: -8px 85px 0 0" height="44" />
       <v-toolbar-title>
-        <span style="font-weight: 700">{{ applicationName }}</span>
+        <span style="font-weight: 700">
+          {{ applicationName }}
+          <span v-if="appConfig.isTest"> - TEST</span>
+          <span v-if="appConfig.isDevelopment"> - DEV</span>
+        </span>
 
         <v-progress-circular
           :class="loadingClass"
@@ -233,6 +237,14 @@ export default {
     },
     applicationOptions() {
       return this.selectedStudent.applications;
+    },
+    appConfig() {
+      return config;
+    },
+    instanceClass() {
+      if (this.appConfig.isTest) return "test-instance";
+      if (this.appConfig.isProduction) return "production-instance";
+      if (this.appConfig.isDevelopment) return "development-instance";
     },
   },
   data: () => ({

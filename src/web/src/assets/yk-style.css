@@ -148,3 +148,8 @@ td.narrow {
 .v-data-table.row-clickable > .v-data-table__wrapper > table > tbody > tr:hover > td {
   cursor: pointer;
 }
+
+.test-instance header.v-app-bar,
+.development-instance header.v-app-bar {
+  background-color: #ea848d99 !important;
+}
