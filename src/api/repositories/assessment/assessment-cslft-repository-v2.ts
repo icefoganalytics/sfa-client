@@ -210,6 +210,8 @@ export class AssessmentCslftRepositoryV2 {
       return { category: u.categoryName, description: u.description, amount: u.amount };
     });
 
+    input.uncapped_expenses = uncapped_expenses;
+
     input.total_costs =
       input.cslft_scholastic_total +
       input.shelter_total +
@@ -617,6 +619,16 @@ export class AssessmentCslftRepositoryV2 {
         student_category_id: this.application.category_id,
       })
       .first();
+
+    if (!this.childcareCeiling) {
+      console.log("Using empty childcareCeiling");
+      this.childcareCeiling = { max_amount: 0 };
+    }
+
+    if (!this.livingAllowance) {
+      console.log("Using empty livingAllowance");
+      this.livingAllowance = { shelter_amount: 0, food_amount: 0, misc_amount: 0, public_tranport_amount: 0 };
+    }
   }
 
   async calculateBase(): Promise<CSLFTAssessmentBase> {
@@ -730,22 +742,7 @@ export class AssessmentCslftRepositoryV2 {
     assess.shelter_month =
       this.livingAllowance.shelter_amount + this.livingAllowance.food_amount + this.livingAllowance.misc_amount;
 
-    /* costsCapped.push({
-      name: "shelter",
-      allowable: cleanDollars(
-        this.livingAllowance.shelter_amount + this.livingAllowance.food_amount + this.livingAllowance.misc_amount
-      ),
-      actual: 0,
-      total: assess.shelter_total,
-    }); */
-
     assess.p_trans_month = this.application.study_bus ? this.livingAllowance.public_tranport_amount : 0;
-    /* costsCapped.push({
-      name: "publicTrans",
-      allowable: cleanDollars(this.application.study_bus ? this.livingAllowance.public_tranport_amount : 0),
-      actual: 0,
-      total: assess.p_trans_total,
-    }); */
 
     let extTransTot = 0;
 
@@ -791,16 +788,6 @@ export class AssessmentCslftRepositoryV2 {
 
       depPTrans =
         assess.dependent_count * (this.application.study_bus ? this.dependentAllowance.public_tranport_amount : 0);
-
-      /*     this.assessment.depend_food_allowable =
-        (
-          this.livingAllowance.shel
-          
-          await this.studentLivingAllowanceRepo.getShelterFoodMisc(
-          this.application.academic_year_id,
-          study_prov,
-          studyCodes.DEP
-        )) * assess.dependent_count; */
     }
 
     assess.day_care_allowable = dayCareAllowable;
@@ -1419,7 +1406,7 @@ interface CSLFTAssessmentFull extends CSLFTAssessmentBase {
   depend_food_total: number;
   depend_tran_total: number;
   discretionary_cost_total: number;
-  uncapped_expenses: number;
+  uncapped_expenses: any[];
   total_costs: number;
   parent_msol: number;
   parent_discretionary_income: number;

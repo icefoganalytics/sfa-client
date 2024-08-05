@@ -1118,8 +1118,7 @@ studentRouter.get(
     const update = await db("sfa.vendor_update")
       .where({ "vendor_update.id": id, student_id })
       .leftOuterJoin("sfa.city", "city.id", "vendor_update.city_id")
-      .leftOuterJoin("sfa.province", "province.id", "vendor_update.city_id")
-
+      .leftOuterJoin("sfa.province", "province.id", "vendor_update.province_id")
       .select("vendor_update.*", "city.description as city", "province.description as province")
       .first();
     const student = await db("sfa.student")
