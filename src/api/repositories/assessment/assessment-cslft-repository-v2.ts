@@ -210,6 +210,8 @@ export class AssessmentCslftRepositoryV2 {
       return { category: u.categoryName, description: u.description, amount: u.amount };
     });
 
+    input.uncapped_expenses = uncapped_expenses;
+
     input.total_costs =
       input.cslft_scholastic_total +
       input.shelter_total +
@@ -617,6 +619,8 @@ export class AssessmentCslftRepositoryV2 {
         student_category_id: this.application.category_id,
       })
       .first();
+
+    if (!this.childcareCeiling) {
       console.log("Using empty childcareCeiling");
       this.childcareCeiling = { max_amount: 0 };
     }
@@ -1402,7 +1406,7 @@ interface CSLFTAssessmentFull extends CSLFTAssessmentBase {
   depend_food_total: number;
   depend_tran_total: number;
   discretionary_cost_total: number;
-  uncapped_expenses: number;
+  uncapped_expenses: any[];
   total_costs: number;
   parent_msol: number;
   parent_discretionary_income: number;
