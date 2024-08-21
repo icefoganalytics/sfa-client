@@ -49,6 +49,7 @@ const state = {
         { text: "Institution", value: "institutionName" },
         { text: "Received", value: "receivedDate" },
         { text: "Grant", value: "grantType" },
+        { text: "Reason", value: "statusReason" },
       ],
     },
     {
