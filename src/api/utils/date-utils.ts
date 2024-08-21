@@ -4,14 +4,12 @@ import moment from "moment";
 export function weeksBetween(start: Date | string | undefined, end: Date | string | undefined): number {
   if (isUndefined(start) || isUndefined(end)) return 0;
 
-  const weeks = Math.ceil(
-    moment.utc(end).endOf("week").add(1, "millisecond").diff(moment.utc(start).startOf("week"), "week", false)
-  );
+  const sDate = moment.utc(start).hours(12).minutes(0);
+  const eDate = moment.utc(end).hours(12).minutes(0);
+  const days = eDate.diff(sDate, "days");
+  const weeks = Math.ceil(days / 7);
 
-  if (weeks == 53) {
-    const days = Math.ceil(moment.utc(end).diff(moment.utc(start), "days", true));
-    if (days <= 366) return 52;
-  }
+  if (weeks == 53 && days <= 366) return 52;
 
   return weeks;
 }
