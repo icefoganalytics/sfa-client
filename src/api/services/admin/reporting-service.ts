@@ -21,7 +21,8 @@ export default class ReportingService {
       institution.name 'Institution Name', 
       application.academic_year_id 'Application Year',
       status_date 'Status Change Date', 
-      funding_request.received_date 'Received Date'
+      funding_request.received_date 'Received Date',
+	  status_reason.description 'Status Reason'
     FROM sfa.funding_request
       INNER JOIN sfa.status ON funding_request.status_id = status.id
       INNER JOIN sfa.request_type ON request_type.id = funding_request.request_type_id
@@ -31,6 +32,7 @@ export default class ReportingService {
       INNER JOIN sfa.institution_campus ON application.institution_campus_id = institution_campus.id
       INNER JOIN sfa.institution ON institution_campus.institution_id = institution.id
       INNER JOIN sfa.marital_status ON application.marital_status_id = marital_status.id
+	    LEFT OUTER JOIN sfa.status_reason ON funding_request.status_reason_id = status_reason.id
     WHERE application.academic_year_id IN (` +
         years.join(",") +
         `)

@@ -621,13 +621,28 @@ export class AssessmentCslftRepositoryV2 {
       .first();
 
     if (!this.childcareCeiling) {
-      console.log("Using empty childcareCeiling");
-      this.childcareCeiling = { max_amount: 0 };
+      const yukonChildcareCeiling = await this.db("sfa.child_care_ceiling")
+        .where({
+          academic_year_id: this.application.academic_year_id,
+          province_id: 3,
+        })
+        .first();
+
+      console.log("Using Yukon childcareCeiling");
+      this.childcareCeiling = yukonChildcareCeiling;
     }
 
     if (!this.livingAllowance) {
-      console.log("Using empty livingAllowance");
-      this.livingAllowance = { shelter_amount: 0, food_amount: 0, misc_amount: 0, public_tranport_amount: 0 };
+      const yukonLivingAllowance = await this.db("sfa.student_living_allowance")
+        .where({
+          academic_year_id: this.application.academic_year_id,
+          province_id: 3,
+          student_category_id: this.application.category_id,
+        })
+        .first();
+
+      console.log("Using Yukon livingAllowance");
+      this.livingAllowance = yukonLivingAllowance;
     }
   }
 

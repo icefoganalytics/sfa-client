@@ -1,106 +1,221 @@
 <style>
-  table td{ font-size: 1.1rem}
+  table td,div{ font-size: .9rem}
 </style>
 <div style="font-size: 1.1rem">
-  <div class="header" style="text-align: right; font-size: .9rem; margin-top: -60px">
-    GOVERNMENT OF YUKON, DEPARTMENT OF EDUCATION
-    <br />
-    STUDENT FUNDING PROGRAMS
-    <div class="mt-4" style="font-size: 1.4rem; font-weight: 700">
-      Accounts Payable Vendor
-      {{#if isCreate}}Create{{else}}Update{{/if}}
-      Request
+  <div class="header" style="text-align: right; font-size: .9rem; margin-top: -60px; margin-bottom: 20px">
+    <div class="mt-4" style="font-size: 1.3rem; font-weight: 700; padding-top: 35px">
+      ACCOUNTS PAYABLE VENDOR REQUEST
     </div>
-    <hr style="border-color: black; border-bottom: 0; margin-bottom: 25px; margin-top: 15px;" />
   </div>
 
-  <div style="margin-bottom: 15px">
-    VENDOR ID - ASSIGNED BY FINANCE:
-    <strong>{{student.vendor_id}}</strong>
+  <div style="border: 1px black solid; width: 100%;  ">
+    <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+      <tr>
+        <td style="width: auto; padding: 2px; vertical-align: top;">
+          <div style="width: 100%; height: 28px; display: flex; padding: 0 4px">
+            <div style="width: 72px; height: 22px">Request to:</div>
+            <div
+              style="border-bottom: 1px black solid; flex-grow: 1; margin-right: 10px; height: 20px; padding-left: 5px"
+            >
+              {{#if isCreate}}
+                Add a new vendor
+              {{else}}
+                Change existing vendor
+              {{/if}}
+            </div>
+          </div>
+
+          <div style="width: 100%; height: 24px; display: flex; padding: 0 4px ">
+            <div style="width: 265px"><strong>If</strong>
+              changing or cancelling: Current vendor ID:
+            </div>
+            <div style="border-bottom: 1px black solid; flex-grow:1; margin-right: 10px">
+              {{student.vendor_id}}
+            </div>
+          </div>
+        </td>
+
+        <td style="width: 150px; border-left: 1px #999 solid; padding: 2px 4px; vertical-align: top;">
+          <div style="height: 24px">Vendor type:</div>
+          <div style="padding-top: 4px">CD vendor</div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="border-top: 1px #999 solid; padding: 0 4px">
+          <strong>If</strong>
+          individual: Department to send SIN Request Form to vendor.
+          <br />
+          <div style="margin-left: 76px; margin-bottom: 10px">Vendor to MAIL completed form directory to Finance as per
+            form.</div>
+
+          <div style="display:flex">
+            <div style="width: 428px">
+              <strong>If</strong>
+              partnership, corporation, society or non-profit: Corporate registration:
+            </div>
+            <div style="border-bottom: 1px black solid; flex-grow:1; margin-right: 4px"> </div>
+          </div>
+
+          <div style="display:flex; margin-bottom: 2px">
+            <div style="width: 200px">
+              Recipient code (mandatory field):
+            </div>
+            <div style="border-bottom: 1px black solid; flex-grow:1; margin-right: 4px; padding-left: 5px">IN -
+              Individuals
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="border-top: 1px #999 solid; padding: 3px 4px;">
+          <div style="display:flex; ">
+            <div style="width: 300px; border-right: 1px #999 solid">
+              Physically operating in Yukon? &nbsp; &nbsp; &#9635; Yes &#9634; No
+            </div>
+            <div style="flex-grow:2; padding: 0 4px;">
+              Front end/service goods contracts &nbsp; &nbsp; &nbsp; Yes &#9634; No &#9635;
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="color: white; background-color: black; padding: 2px 4px">
+          Vendor information
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 40px; padding: 0 4px">
+          <span style="font-size: 13px">Legal name</span>
+          <br />{{student.first_name}}
+          {{student.initials}}
+          {{student.last_name}}
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 40px; border-top: 1px #999 solid; padding: 0 4px">
+          <span style="font-size: 13px">Address</span>
+          <br />{{update.address}}
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 40px; border-top: 1px #999 solid">
+          <div style="display: flex; width: 100%; padding: 0 4px; height: 100%">
+            <div style="flex-grow:2; border-right: 1px #999 solid">
+              <span style="font-size: 13px">City</span>
+              <br />{{update.city}}
+            </div>
+            <div style="flex-grow:1;padding: 0 4px; border-right: 1px #999 solid">
+              <span style="font-size: 13px; ">Province/territory</span>
+              <br />{{update.province}}
+            </div>
+            <div style="flex-grow:1;padding: 0 4px; border-right: 1px #999 solid">
+              <span style="font-size: 13px; flex-grow:1">Postal code</span>
+              <br />{{update.postal_code}}
+            </div>
+            <div style="flex-grow:1; padding: 0 4px;">
+              <span style="font-size: 13px; flex-grow:1">Country</span>
+              <br />{{update.country}}
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 40px; border-top: 1px #999 solid">
+
+          <div style="display: flex; width: 100%; padding: 0 4px; height: 100%">
+            <div style="flex-grow:2; border-right: 1px #999 solid">
+              <span style="font-size: 13px">Email</span>
+              <br />{{update.email}}
+            </div>
+            <div style="flex-grow:1;padding: 0 4px; ">
+              <span style="font-size: 13px; ">Phone</span>
+              <br />{{update.telephone}}
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 40px; border-top: 1px #999 solid; vertical-align:top; padding: 2px 4px">
+          <span style="font-size: 13px">Vendor notes</span>
+          <br />
+
+          {{#if update.is_address_update}}
+            - Update vendor address to the above<br />
+          {{/if}}
+
+          {{#if update.is_banking_update}}
+            - Update vendor banking information to the new one attached<br />
+          {{/if}}
+
+          {{#if update.is_direct_deposit_update}}
+            - Set up direct deposit with the banking information attached<br />
+          {{/if}}
+
+          {{#if update.is_name_change_update}}
+            - Change the name of the vendor due to specific circumstances:<br />
+            <strong style="padding-left: 15px">{{update.name_change_comment}}</strong>
+          {{/if}}
+        </td>
+      </tr>
+    </table>
+
+  </div>
+  <div style="margin: 5px 0">
+    <strong>Note:</strong>
+    All vendor update requests must have sufficient documentation attached to verify the validity of requests.
+    <br />
+    Handwritten requests will not be accepted. Refer to the Finance Library for vendor request information and all forms
+
   </div>
   <div>
-    Request to:
-    <ul style="margin-top: 5px">
-      {{#if isCreate}}
-        <li>Create VID</li>
-      {{/if}}
-
-      {{#if update.is_address_update}}
-        <li>Update VID address to the following</li>
-      {{/if}}
-
-      {{#if update.is_banking_update}}
-        <li>Update VID's banking information to the new one attached</li>
-      {{/if}}
-
-      {{#if update.is_direct_deposit_update}}
-        <li>Set up VID for direct deposit with the banking information attached</li>
-      {{/if}}
-
-      {{#if update.is_name_change_update}}
-        <li>Change the name of the Vendor due to specific circumstances:
-          <strong>{{update.name_change_comment}}</strong>
-        </li>
-      {{/if}}
-    </ul>
+    <strong>I have attached: </strong>
+    <div style="margin-left: 10px">
+      {{#if update.is_direct_deposit_update}} &#9635;{{else}}&#9634;{{/if}}
+      Direct deposit authorization<br />
+      {{#if update.is_banking_update}} &#9635;{{else}}&#9634;{{/if}}
+      Fully enclosed cheque or bank authorization letter<br />
+      &#9634; Wire payment form. See information on Finance site for how to complete a wire form.
+    </div>
   </div>
 
-  <table>
+  <table style="width: 100%; margin-top: 10px">
     <tr>
-      <td style="width: 140px">Vendor Name:</td>
-      <td>{{student.first_name}} {{student.initials}} {{student.last_name}}</td>
+      <td style="width: 140px">Submitted By:</td>
+      <td style="border-bottom: 1px black solid; padding-left: 4px;">
+        {{user.first_name}}
+        {{user.last_name}}
+      </td>
+      <td style="width: 30px"></td>
+      <td style="width: 45px;text-align: right">Phone:</td>
+      <td style="border-bottom: 1px black solid; width: 100px; padding-left: 4px;">{{user.telephone}}</td>
+      <td style=""></td>
     </tr>
     <tr>
-      <td>Address:</td>
-      <td>{{update.address}}</td>
+      <td style="width: 140px">Department/branch:</td>
+      <td style="border-bottom: 1px black solid; padding-left: 4px;">
+        {{department}}
+      </td>
+      <td style="width: 30px"></td>
+      <td style="width: 45px;text-align: right">Date:</td>
+      <td style="border-bottom: 1px black solid; width: 100px; padding-left: 4px;">{{date}}</td>
+      <td style=""></td>
     </tr>
-    <tr>
-      <td>City:</td>
-      <td>{{update.city}}</td>
-    </tr>
-    <tr>
-      <td>Province/Territory:</td>
-      <td>{{update.province}}</td>
-    </tr>
-    <tr>
-      <td>Postal Code:</td>
-      <td>{{update.postal_code}}</td>
-    </tr>
-    <tr>
-      <td>Telephone:</td>
-      <td>{{student.telephone}}</td>
-    </tr>
-    <tr>
-      <td>Email:</td>
-      <td>{{student.email}}</td>
-    </tr>
-    <tr>
-      <td>Employee:</td>
-      <td>No</td>
-    </tr>
+    <tr><td colspan="6"><strong>Submit completed forms via email to</strong> accounts.payable@yukon.ca</td></tr>
   </table>
 
-  <table style="width: 100%; margin-top: 80px">
-    <tr>
-      <td style="width: 140px">Prepared By:</td>
-      <td style="border-bottom: 1px black solid;">{{user.first_name}}
-        {{user.last_name}}
-        -
-        {{department}}</td>
-      <td style="width: 30px"></td>
-      <td style="width: 45px">Date:</td>
-      <td style="border-bottom: 1px black solid; width: 100px">{{date}}</td>
-      <td style=""></td>
-    </tr>
-    <tr><td colspan="6">&nbsp;</td></tr>
-
+  <table style="width: 100%; margin-top: 10px; background-color: #ccc; border: 1px #999 solid;">
     <tr class="">
-      <td style="margin-top: 20px">Financial Approval:</td>
-      <td style="border-bottom: 1px black solid;"></td>
+      <td colspan="2" style="margin-top: 20px; font-weight: 700;">DEPARTMENT OF FINANCE - OFFICE USE ONLY</td>
       <td style=""></td>
-      <td style="">Date:</td>
-      <td style="border-bottom: 1px black solid; "></td>
-      <td></td>
+      <td style=";text-align: right">Assigned vendor ID:</td>
+      <td style="border-bottom: 1px black solid; width: 10px;">&nbsp;</td>
+    </tr>
+    <tr class="">
+      <td style="width: 160px; margin-top: 20px">Finance review and entry:</td>
+      <td style="border-bottom: 1px black solid;"></td>
+      <td style="width: 10px;"></td>
+      <td style="width: 120px;text-align: right">Date:</td>
+      <td style="border-bottom: 1px black solid; width: 110px"></td>
     </tr>
   </table>
 </div>

@@ -3,6 +3,7 @@ import moment from "moment";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
 import { ApplicationRepository } from "../application";
 import { ApplicationDTO, assessmentColumns, AssessmentDTO, DisbursementDTO, AssessmentTable } from "../../models";
+import { weeksBetween } from "@/utils/date-utils";
 
 export class AssessmentSTA extends AssessmentBaseRepository {
   private applicationRepo: ApplicationRepository;
@@ -77,10 +78,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
       this.application.student_id || 0,
       this.application.id || 0,
     ]);
-    initValues.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-      `'${moment(this.application.classes_start_date).format("YYYY-MM-DD")}'`,
-      `'${moment(this.application.classes_end_date).format("YYYY-MM-DD")}'`,
-    ]);
+    initValues.assessed_weeks = weeksBetween(this.application.classes_start_date, this.application.classes_end_date);
 
     let prev_weeks_curr_yr = await this.getScalarValue<number>("fn_get_prev_weeks_curr_year_sta", [
       `'Normal'`,
@@ -136,10 +134,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
       this.application.student_id || 0,
       this.application.id || 0,
     ]);
-    values.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-      `'${moment(values.effective_rate_date).format("YYYY-MM-DD")}'`,
-      `'${moment(values.classes_end_date).format("YYYY-MM-DD")}'`,
-    ]);
+    values.assessed_weeks = weeksBetween(this.application.classes_start_date, this.application.classes_end_date);
     values.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
       "'Upgrade'",
       this.application.student_id || 0,
@@ -200,10 +195,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
       this.application.id || 0,
     ]);
 
-    refreshData.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-      `'${moment(refreshData.effective_rate_date).format("YYYY-MM-DD")}'`,
-      `'${moment(refreshData.classes_end_date).format("YYYY-MM-DD")}'`,
-    ]);
+    refreshData.assessed_weeks = weeksBetween(this.application.classes_start_date, this.application.classes_end_date);
 
     let prev_weeks_curr_yr = await this.getScalarValue<number>("fn_get_prev_weeks_curr_year_sta", [
       `'Normal'`,

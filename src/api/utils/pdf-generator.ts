@@ -18,6 +18,7 @@ export async function generatePDF(
     preferCSSPageSize: true,
     footerTemplate,
     displayHeaderFooter: true,
+    printBackground: true,
   });
   await browser.close();
   return Promise.resolve(pdf);

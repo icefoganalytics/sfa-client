@@ -14,6 +14,7 @@ import { StandardOfLivingRepository } from "../standard_of_living";
 import { ParentRepository } from "../parent";
 import { CsgLookupRepository } from "../csg_lookup";
 import { CsgThresholdRepository } from "../csg_threshold";
+import { weeksBetween } from "@/utils/date-utils";
 
 export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
@@ -340,8 +341,7 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         this.assessment.classes_start_date = this.application.classes_start_date;
         this.assessment.classes_end_date = this.application.classes_end_date;
         this.assessment.csl_classification = this.application.csl_classification;
-        const daysDiff = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "day");
-        this.assessment.study_weeks = Math.trunc((daysDiff + 1)/7 + .9999);
+        this.assessment.study_weeks = weeksBetween(this.assessment.classes_start_date, this.assessment.classes_end_date)
 
         this.assessment.parent1_income = this.application.parent1_income;
         this.assessment.parent2_income = this.application.parent2_income;
