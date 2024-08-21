@@ -1119,7 +1119,13 @@ studentRouter.get(
       .where({ "vendor_update.id": id, student_id })
       .leftOuterJoin("sfa.city", "city.id", "vendor_update.city_id")
       .leftOuterJoin("sfa.province", "province.id", "vendor_update.province_id")
-      .select("vendor_update.*", "city.description as city", "province.description as province")
+      .leftOuterJoin("sfa.country", "country.id", "vendor_update.country_id")
+      .select(
+        "vendor_update.*",
+        "city.description as city",
+        "province.description as province",
+        "country.description as country"
+      )
       .first();
     const student = await db("sfa.student")
       .innerJoin("sfa.person", "person.id", "student.person_id")
@@ -1129,16 +1135,16 @@ studentRouter.get(
     if (!update) return res.status(404).send("Vendor Update not found");
     if (!student) return res.status(404).send("Student not found");
 
-    student.vendor_id = student.vendor_id ?? "____________________";
+    //student.vendor_id = student.vendor_id ?? "____________________";
 
     const pdfData = {
       API_PORT: API_PORT,
       update,
       student,
       user: req.user,
-      department: "Department: E-13A",
-      date: moment().format("D MMM YYYY"),
-      isCreate: student.vendor_id.startsWith("_"),
+      department: "E-13A",
+      date: moment().format("YYYY/MM/DD"),
+      isCreate: student.vendor_id && student.vendor_id.length > 1,
     };
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
     const data = await h.renderView(__dirname + "/../../templates/admin/vendor/vendor-request.handlebars", {
@@ -1149,8 +1155,8 @@ studentRouter.get(
 
     let name = `VendorRequest-${student.first_name}${student.last_name}`.replace(/\s/g, "");
 
-    const footerTemplate = `<div style="width: 100%; text-align: left; font-size: 11px; padding: 5px 0; border-top: 1px solid #ccc; margin: 0 40px 10px; font-family: Calibri;">
-      <div style="float:left">${moment().format("MMMM D, YYYY")}</div><div style="float:right">Page 1 of 1</div>
+    const footerTemplate = `<div style="width: 100%; text-align: left; font-size: 9px; padding: 5px 0; margin: 0 40px 10px; font-family: Calibri;">
+      <div style="float:left">YG(486FIN) Rev.03/2024</div><div style="float:right">Page 1 of 1</div>
     </div>`;
 
     let pdf = await generatePDF(data, "letter", false, footerTemplate);
