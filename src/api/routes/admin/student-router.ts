@@ -1,12 +1,11 @@
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import moment from "moment";
-import { readFileSync } from "fs";
 import knex from "knex";
 import { orderBy } from "lodash";
 import axios from "axios";
-import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../../middleware";
-import { API_PORT, DB_CONFIG } from "../../config";
+import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "@/middleware";
+import { API_PORT, DB_CONFIG, NODE_ENV } from "@/config";
 import { DocumentService } from "@/services/shared";
 import { generatePDF } from "@/utils/pdf-generator";
 import { create } from "express-handlebars";
@@ -1040,16 +1039,28 @@ studentRouter.get(
       const student = await db("sfa.student").where({ id: student_id }).first();
 
       if (student) {
-        const vendorList = await axios.post(
-          `https://api.gov.yk.ca/finance/api/v1/vendor/search`,
-          { term },
-          {
-            headers: { "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c" },
-          }
-        );
+        const useGateway = NODE_ENV == "development";
 
-        if (vendorList && vendorList.status === 200) {
-          return res.status(200).json({ success: true, data: { ...vendorList.data } });
+        if (useGateway) {
+          const vendorList = await axios.post(
+            `https://api.gov.yk.ca/finance/api/v1/vendor/search`,
+            { term: term.trim().replace(" ", "%") },
+            {
+              headers: { "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c" },
+            }
+          );
+
+          if (vendorList && vendorList.status === 200) {
+            return res.status(200).json({ success: true, data: { ...vendorList.data } });
+          }
+        } else {
+          const vendorList = await axios.post(`http://inf-docker-tst:3034/api/v2/vendor/search`, {
+            term: term.trim().replace(" ", "%"),
+          });
+
+          if (vendorList && vendorList.status === 200) {
+            return res.status(200).json({ success: true, data: { ...vendorList.data } });
+          }
         }
       }
     } catch (error: any) {
@@ -1144,8 +1155,11 @@ studentRouter.get(
       user: req.user,
       department: "E-13A",
       date: moment().format("YYYY/MM/DD"),
-      isCreate: student.vendor_id && student.vendor_id.length > 1,
+      isCreate: !(student.vendor_id && student.vendor_id.length > 1),
     };
+
+    console.log("ISCRETE", pdfData.isCreate);
+
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
     const data = await h.renderView(__dirname + "/../../templates/admin/vendor/vendor-request.handlebars", {
       ...pdfData,
