@@ -1158,8 +1158,6 @@ studentRouter.get(
       isCreate: !(student.vendor_id && student.vendor_id.length > 1),
     };
 
-    console.log("ISCRETE", pdfData.isCreate);
-
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
     const data = await h.renderView(__dirname + "/../../templates/admin/vendor/vendor-request.handlebars", {
       ...pdfData,
