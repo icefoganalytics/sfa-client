@@ -70,10 +70,26 @@
         <td colspan="2" style="border-top: 1px #999 solid; padding: 3px 4px;">
           <div style="display:flex; ">
             <div style="width: 300px; border-right: 1px #999 solid">
-              Physically operating in Yukon? &nbsp; &nbsp; &#9635; Yes &#9634; No
+              Physically operating in Yukon? &nbsp; &nbsp;
+
+              <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+                <div style="width: 4px; height: 4px; background-color: black; position:relative"></div>
+              </div>
+
+              Yes
+              <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+              </div>
+              No
             </div>
             <div style="flex-grow:2; padding: 0 4px;">
-              Front end/service goods contracts &nbsp; &nbsp; &nbsp; Yes &#9634; No &#9635;
+              Front end/service goods contracts &nbsp; &nbsp; &nbsp; Yes
+              <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+              </div>
+              No
+
+              <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+                <div style="width: 4px; height: 4px; background-color: black; position:relative"></div>
+              </div>
             </div>
           </div>
         </td>
@@ -170,11 +186,24 @@
   <div>
     <strong>I have attached: </strong>
     <div style="margin-left: 10px">
-      {{#if update.is_direct_deposit_update}} &#9635;{{else}}&#9634;{{/if}}
+      {{#if update.is_direct_deposit_update}}
+        <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+          <div style="width: 4px; height: 4px; background-color: black; position:relative"></div>
+        </div>{{else}}
+        <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+        </div>{{/if}}
       Direct deposit authorization<br />
-      {{#if update.is_banking_update}} &#9635;{{else}}&#9634;{{/if}}
+      {{#if update.is_banking_update}}
+        <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+          <div style="width: 4px; height: 4px; background-color: black; position:relative"></div>
+        </div>{{else}}
+        <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+        </div>{{/if}}
       Fully enclosed cheque or bank authorization letter<br />
-      &#9634; Wire payment form. See information on Finance site for how to complete a wire form.
+
+      <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+      </div>
+      Wire payment form. See information on Finance site for how to complete a wire form.
     </div>
   </div>
 
