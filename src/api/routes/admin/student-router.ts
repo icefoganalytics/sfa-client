@@ -1054,7 +1054,7 @@ studentRouter.get(
             return res.status(200).json({ success: true, data: { ...vendorList.data } });
           }
         } else {
-          const vendorList = await axios.post(`http://inf-docker-tst:3034/api/v2/vendor/search`, {
+          const vendorList = await axios.post(`http://inf-docker-tst.ynet.gov.yk.ca:3034/api/v2/vendor/search`, {
             term: term.trim().replace(" ", "%"),
           });
 
