@@ -7,9 +7,9 @@ RUN apk add --no-cache \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-RUN apk --no-cache add msttcorefonts-installer fontconfig && \
-    update-ms-fonts && \
-    fc-cache -f
+#RUN apk --no-cache add msttcorefonts-installer fontconfig && \
+#  update-ms-fonts && \
+#  fc-cache -f
 
 COPY fonts/*.ttf /usr/share/fonts/
 RUN fc-cache -fv
