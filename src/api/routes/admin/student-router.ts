@@ -1009,14 +1009,26 @@ studentRouter.get(
       const student = await db("sfa.student").where({ id: student_id }).first();
 
       if (student && student.vendor_id) {
-        const vendor = await axios.get("https://api.gov.yk.ca/finance/api/v1/vendor/" + student.vendor_id, {
-          headers: {
-            "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c",
-          },
-        });
+        const useGateway = NODE_ENV == "development";
 
-        if (vendor && vendor.status === 200) {
-          return res.status(200).json({ success: true, data: { ...vendor.data } });
+        if (useGateway) {
+          const vendor = await axios.get("https://api.gov.yk.ca/finance/api/v1/vendor/" + student.vendor_id, {
+            headers: {
+              "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c",
+            },
+          });
+
+          if (vendor && vendor.status === 200) {
+            return res.status(200).json({ success: true, data: { ...vendor.data } });
+          }
+        } else {
+          const vendor = await axios.get(
+            `http://inf-docker-tst.ynet.gov.yk.ca:3034/api/v2/vendor/${student.vendor_id}`
+          );
+
+          if (vendor && vendor.status === 200) {
+            return res.status(200).json({ success: true, data: { ...vendor.data } });
+          }
         }
       }
     } catch (error: any) {
