@@ -417,9 +417,9 @@ export default class ReportingService {
     if (format == "csv") {
       //since it's a CSV, we need to update the items so they don't show up multiple times
 
-      for (let item of results) {
+      /* for (let item of results) {
         await db("vendor_update").where({ id: item.id }).update({ update_requested_date: new Date() });
-      }
+      } */
     }
 
     return val;
