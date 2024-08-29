@@ -115,7 +115,7 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="4" v-if="newRecord.operation == 'update'">
+            <v-col cols="4" >
               <v-switch
                 label="Update banking info?"
                 v-model="newRecord.is_banking_update"
@@ -124,7 +124,7 @@
               />
             </v-col>
 
-            <v-col cols="5" v-if="newRecord.operation == 'update'">
+            <v-col cols="5">
               <v-switch
                 label="Setup direct deposit?"
                 v-model="newRecord.is_direct_deposit_update"
