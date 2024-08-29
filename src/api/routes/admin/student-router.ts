@@ -1094,7 +1094,7 @@ studentRouter.post(
       const { data } = req.body;
 
       const student = await db("sfa.student")
-        .innerJoin("sfa.person", "student.person_id", "person_id")
+        .innerJoin("sfa.person", "student.person_id", "person.id")
         .where({ "student.id": student_id })
         .first();
       const vendorAddress = await db("sfa.person_address").where({ id: data.address_id }).first();
@@ -1167,7 +1167,7 @@ studentRouter.get(
       user: req.user,
       department: "E-13A",
       date: moment().format("YYYY/MM/DD"),
-      isCreate: !(student.vendor_id && student.vendor_id.length > 1),
+      isCreate: !(update.vendor_id && update.vendor_id.length > 1),
     };
 
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
