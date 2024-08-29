@@ -63,7 +63,10 @@
             <template #item.update_requested_date="{item}">{{ formatDate(item.update_requested_date) }}</template>
             <template #item.update_completed_date="{item}">{{ formatDate(item.update_completed_date) }}</template>
             <template #item.status="{item}">{{ generateStatus(item) }}</template>
-            <template #item.download="{item}"><v-icon @click.stop="downloadClick(item)">mdi-download</v-icon></template>
+            <template #item.download="{item}">
+              <v-icon @click.stop="downloadClick(item)">mdi-download</v-icon>
+              <v-icon color="error" class="ml-5" @click.stop="deleteClick(item)">mdi-delete</v-icon>
+            </template>
           </v-data-table>
         </div>
       </v-card-text>
@@ -115,7 +118,7 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="4" >
+            <v-col cols="4">
               <v-switch
                 label="Update banking info?"
                 v-model="newRecord.is_banking_update"
@@ -174,7 +177,9 @@
             <p class="mb-0">This request was completed on {{ formatDate(editRecord.update_completed_date) }}</p>
           </div>
           <div v-else>
-            <p class="mb-0">This request was created on {{ formatDate(editRecord.created_date) }} but hasn't yet been sent to finance.</p>
+            <p class="mb-0">
+              This request was created on {{ formatDate(editRecord.created_date) }} but hasn't yet been sent to finance.
+            </p>
           </div>
         </v-card-text>
       </v-card>
@@ -367,6 +372,40 @@ export default {
 
     downloadClick(item) {
       window.open(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}?format=pdf`);
+    },
+
+    deleteClick(item) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to remove this vendor request.",
+        () => {
+          console.log("DELETE", item.id);
+          //this.doSaveStudent("vendor_id", null, "studentInfo", this.student.id);
+
+          axios
+            .delete(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, {
+              data: { ...this.newRecord, vendor_id: this.student.vendor_id },
+            })
+            .then((res) => {
+              const message = res?.data?.messages[0];
+
+              if (message?.variant === "success") {
+                this.$emit("showSuccess", message.text);
+              } else {
+                this.$emit("showError", message.text);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              this.$emit("showError", "Error removing vendor request");
+            })
+            .finally(() => {
+              store.dispatch("loadStudent", this.student.id);
+              this.showAdd = false;
+            });
+        },
+        () => {}
+      );
     },
 
     generateStatus(item) {

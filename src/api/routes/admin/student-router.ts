@@ -1203,6 +1203,18 @@ studentRouter.put(
     res.json({ messages: [{ variant: "success", text: "Saved" }] });
   }
 );
+studentRouter.delete(
+  "/:student_id/vendor-update/:id",
+  [param("student_id").isInt().notEmpty(), param("id").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { student_id, id } = req.params;
+
+    await db("sfa.vendor_update").where({ id, student_id }).delete();
+
+    res.json({ messages: [{ variant: "success", text: "Vendor Request Removed" }] });
+  }
+);
 
 async function insertStudent(student: any) {
   let max = (await db("sfa.STUDENT").max("student_id as smax").first())?.smax;
