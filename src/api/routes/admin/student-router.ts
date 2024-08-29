@@ -1158,7 +1158,7 @@ studentRouter.get(
     if (!update) return res.status(404).send("Vendor Update not found");
     if (!student) return res.status(404).send("Student not found");
 
-    //student.vendor_id = student.vendor_id ?? "____________________";
+    update.is_banking_update = update.is_banking_update || update.is_direct_deposit_update;
 
     const pdfData = {
       API_PORT: API_PORT,
