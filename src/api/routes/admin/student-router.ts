@@ -1196,9 +1196,9 @@ studentRouter.put(
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const { student_id, id } = req.params;
-    const { update_completed_date } = req.body;
+    const { update_completed_date, update_requested_date } = req.body;
 
-    await db("sfa.vendor_update").where({ id, student_id }).update({ update_completed_date });
+    await db("sfa.vendor_update").where({ id, student_id }).update({ update_completed_date, update_requested_date });
 
     res.json({ messages: [{ variant: "success", text: "Saved" }] });
   }

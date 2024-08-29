@@ -177,9 +177,10 @@
             <p class="mb-0">This request was completed on {{ formatDate(editRecord.update_completed_date) }}</p>
           </div>
           <div v-else>
-            <p class="mb-0">
+            <p>
               This request was created on {{ formatDate(editRecord.created_date) }} but hasn't yet been sent to finance.
             </p>
+            <v-btn color="primary" @click="markSentClick(editRecord)">Mark Sent</v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -379,9 +380,6 @@ export default {
         "Are you sure?",
         "Click 'Confirm' below to remove this vendor request.",
         () => {
-          console.log("DELETE", item.id);
-          //this.doSaveStudent("vendor_id", null, "studentInfo", this.student.id);
-
           axios
             .delete(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, {
               data: { ...this.newRecord, vendor_id: this.student.vendor_id },
@@ -416,7 +414,28 @@ export default {
       axios
         .put(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, { update_completed_date: new Date() })
         .then((res) => {
-          console.log("RESP", res);
+          const message = res?.data?.messages[0];
+
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+          } else {
+            this.$emit("showError", message.text);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.$emit("showError", "Error completing vendor request");
+        })
+        .finally(() => {
+          store.dispatch("loadStudent", this.student.id);
+
+          this.showEdit = false;
+        });
+    },
+    markSentClick(item) {
+      axios
+        .put(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, { update_requested_date: new Date() })
+        .then((res) => {
           const message = res?.data?.messages[0];
 
           if (message?.variant === "success") {
