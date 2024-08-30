@@ -63,7 +63,10 @@
             <template #item.update_requested_date="{item}">{{ formatDate(item.update_requested_date) }}</template>
             <template #item.update_completed_date="{item}">{{ formatDate(item.update_completed_date) }}</template>
             <template #item.status="{item}">{{ generateStatus(item) }}</template>
-            <template #item.download="{item}"><v-icon @click.stop="downloadClick(item)">mdi-download</v-icon></template>
+            <template #item.download="{item}">
+              <v-icon @click.stop="downloadClick(item)">mdi-download</v-icon>
+              <v-icon color="error" class="ml-5" @click.stop="deleteClick(item)">mdi-delete</v-icon>
+            </template>
           </v-data-table>
         </div>
       </v-card-text>
@@ -115,7 +118,7 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="4" v-if="newRecord.operation == 'update'">
+            <v-col cols="4">
               <v-switch
                 label="Update banking info?"
                 v-model="newRecord.is_banking_update"
@@ -124,7 +127,7 @@
               />
             </v-col>
 
-            <v-col cols="5" v-if="newRecord.operation == 'update'">
+            <v-col cols="5">
               <v-switch
                 label="Setup direct deposit?"
                 v-model="newRecord.is_direct_deposit_update"
@@ -174,7 +177,10 @@
             <p class="mb-0">This request was completed on {{ formatDate(editRecord.update_completed_date) }}</p>
           </div>
           <div v-else>
-            <p class="mb-0">This request was created on {{ formatDate(editRecord.created_date) }} but hasn't yet been sent to finance.</p>
+            <p>
+              This request was created on {{ formatDate(editRecord.created_date) }} but hasn't yet been sent to finance.
+            </p>
+            <v-btn color="primary" @click="markSentClick(editRecord)">Mark Sent</v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -369,6 +375,37 @@ export default {
       window.open(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}?format=pdf`);
     },
 
+    deleteClick(item) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to remove this vendor request.",
+        () => {
+          axios
+            .delete(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, {
+              data: { ...this.newRecord, vendor_id: this.student.vendor_id },
+            })
+            .then((res) => {
+              const message = res?.data?.messages[0];
+
+              if (message?.variant === "success") {
+                this.$emit("showSuccess", message.text);
+              } else {
+                this.$emit("showError", message.text);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              this.$emit("showError", "Error removing vendor request");
+            })
+            .finally(() => {
+              store.dispatch("loadStudent", this.student.id);
+              this.showAdd = false;
+            });
+        },
+        () => {}
+      );
+    },
+
     generateStatus(item) {
       if (item.update_completed_date) return "Complete";
       return "Pending";
@@ -377,7 +414,28 @@ export default {
       axios
         .put(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, { update_completed_date: new Date() })
         .then((res) => {
-          console.log("RESP", res);
+          const message = res?.data?.messages[0];
+
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+          } else {
+            this.$emit("showError", message.text);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.$emit("showError", "Error completing vendor request");
+        })
+        .finally(() => {
+          store.dispatch("loadStudent", this.student.id);
+
+          this.showEdit = false;
+        });
+    },
+    markSentClick(item) {
+      axios
+        .put(`${STUDENT_URL}/${this.student.id}/vendor-update/${item.id}`, { update_requested_date: new Date() })
+        .then((res) => {
           const message = res?.data?.messages[0];
 
           if (message?.variant === "success") {

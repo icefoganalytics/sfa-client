@@ -241,8 +241,8 @@ export default {
       return val[0] ? val[0].description : "";
     },
 
-    disburseClick() {
-      this.makeDisbursements(this.numberOfDisbursements);
+    async disburseClick() {
+      await this.makeDisbursements(this.numberOfDisbursements);
     },
     async deleteDisbursement(item, index) {
       await this.removeDisbursement({ item, index });

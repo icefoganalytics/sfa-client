@@ -1094,7 +1094,7 @@ studentRouter.post(
       const { data } = req.body;
 
       const student = await db("sfa.student")
-        .innerJoin("sfa.person", "student.person_id", "person_id")
+        .innerJoin("sfa.person", "student.person_id", "person.id")
         .where({ "student.id": student_id })
         .first();
       const vendorAddress = await db("sfa.person_address").where({ id: data.address_id }).first();
@@ -1158,7 +1158,7 @@ studentRouter.get(
     if (!update) return res.status(404).send("Vendor Update not found");
     if (!student) return res.status(404).send("Student not found");
 
-    //student.vendor_id = student.vendor_id ?? "____________________";
+    update.is_banking_update = update.is_banking_update || update.is_direct_deposit_update;
 
     const pdfData = {
       API_PORT: API_PORT,
@@ -1167,7 +1167,7 @@ studentRouter.get(
       user: req.user,
       department: "E-13A",
       date: moment().format("YYYY/MM/DD"),
-      isCreate: !(student.vendor_id && student.vendor_id.length > 1),
+      isCreate: !(update.vendor_id && update.vendor_id.length > 1),
     };
 
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
@@ -1196,11 +1196,23 @@ studentRouter.put(
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const { student_id, id } = req.params;
-    const { update_completed_date } = req.body;
+    const { update_completed_date, update_requested_date } = req.body;
 
-    await db("sfa.vendor_update").where({ id, student_id }).update({ update_completed_date });
+    await db("sfa.vendor_update").where({ id, student_id }).update({ update_completed_date, update_requested_date });
 
     res.json({ messages: [{ variant: "success", text: "Saved" }] });
+  }
+);
+studentRouter.delete(
+  "/:student_id/vendor-update/:id",
+  [param("student_id").isInt().notEmpty(), param("id").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { student_id, id } = req.params;
+
+    await db("sfa.vendor_update").where({ id, student_id }).delete();
+
+    res.json({ messages: [{ variant: "success", text: "Vendor Request Removed" }] });
   }
 );
 
