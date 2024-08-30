@@ -150,7 +150,7 @@ const actions = {
       issue_date: moment().format("YYYY-MM-DD"),
     });
 
-    await commit("SET_DISBURSEMENTS", [...state.disbursements, ...disbursedValues]);
+    commit("SET_DISBURSEMENTS", [...state.disbursements, ...disbursedValues]);
 
     await axios.put(`${APPLICATION_URL}/${state.fundingRequest.application_id}/status/${state.fundingRequest.id}`, {
       data: { status_id: 7 }, // Awarded

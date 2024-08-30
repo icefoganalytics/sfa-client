@@ -260,10 +260,10 @@ export default {
           this.$emit("showError", "Error saving assessment");
         });
     },
-    async saveDisbursement() {
+    /* async saveDisbursement() {
       await this.save();
       this.$emit("showSuccess", "Disbursements saved");
-    },
+    }, */
 
     formatMoney(input) {
       if (input && isNumber(input)) {
