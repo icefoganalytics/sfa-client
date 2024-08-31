@@ -155,15 +155,19 @@
           <span style="font-size: 13px">Vendor notes</span>
           <br />
 
+          {{#if isBankingCreate}}
+            - Create new vendor to receive cheque by mail<br />
+          {{/if}}
+
+          {{#if isBankingUpdate}}
+            - Update vendor banking information to the new one attached<br />
+          {{/if}}
+
           {{#if update.is_address_update}}
             - Update vendor address to the above<br />
           {{/if}}
 
-          {{#if update.is_banking_update}}
-            - Update vendor banking information to the new one attached<br />
-          {{/if}}
-
-          {{#if update.is_banking_update}}
+          {{#if update.is_direct_deposit_update}}
             - Set up direct deposit with the banking information attached<br />
           {{/if}}
 
@@ -193,10 +197,16 @@
         <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
         </div>{{/if}}
       Direct deposit authorization<br />
-      {{#if update.is_banking_update}}
+      {{#if update.is_direct_deposit_update}}
         <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
           <div style="width: 4px; height: 4px; background-color: black; position:relative"></div>
-        </div>{{else}}
+        </div>
+      {{else if isBankingUpdate}}
+        <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
+          <div style="width: 4px; height: 4px; background-color: black; position:relative"></div>
+        </div>
+
+      {{else}}
         <div style="width: 4px; height: 4px; border: 1px black solid; display:inline-block; padding: 2px">
         </div>{{/if}}
       Fully enclosed cheque or bank authorization letter<br />

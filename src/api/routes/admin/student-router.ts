@@ -1158,7 +1158,7 @@ studentRouter.get(
     if (!update) return res.status(404).send("Vendor Update not found");
     if (!student) return res.status(404).send("Student not found");
 
-    update.is_banking_update = update.is_banking_update || update.is_direct_deposit_update;
+    const isCreate = !(update.vendor_id && update.vendor_id.length > 1);
 
     const pdfData = {
       API_PORT: API_PORT,
@@ -1167,7 +1167,9 @@ studentRouter.get(
       user: req.user,
       department: "E-13A",
       date: moment().format("YYYY/MM/DD"),
-      isCreate: !(update.vendor_id && update.vendor_id.length > 1),
+      isCreate,
+      isBankingCreate: isCreate && update.is_banking_update,
+      isBankingUpdate: !isCreate && update.is_banking_update,
     };
 
     const h = create({ defaultLayout: "./templates/layouts/pdf-layout" });
