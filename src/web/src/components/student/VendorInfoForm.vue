@@ -80,89 +80,95 @@
       </v-toolbar>
       <v-card>
         <v-card-text class="pt-4">
-          <v-row>
-            <v-col cols="12">
-              <v-select
-                label="Request type"
-                v-model="newRecord.operation"
-                hide-details
-                :items="[
-                  { text: 'Vendor Creation', value: 'create' },
-                  { text: 'Vendor Update', value: 'update' },
-                ]"
-                dense
-                outlined
-              />
-            </v-col>
-            <v-col cols="12">
-              <v-select
-                label="Student address"
-                :items="student.addresses"
-                v-model="newRecord.address_id"
-                item-text="address_display"
-                item-value="id"
-                class="my-1"
-                outlined
-                dense
-                hide-details
-                background-color="white"
-              />
-            </v-col>
-            <v-col cols="12" v-if="newRecord.operation == 'update'">
-              <v-switch
-                label="Update address to match above?"
-                class="my-2"
-                v-model="newRecord.is_address_update"
-                hide-details
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="4">
-              <v-switch
-                label="Update banking info?"
-                v-model="newRecord.is_banking_update"
-                hide-details
-                class="my-3 mt-2"
-              />
-            </v-col>
+          <v-radio-group v-model="paymentChoice" hide-details class="my-0">
+            <v-row>
+              <v-col cols="12">
+                <v-select
+                  label="Request type"
+                  v-model="newRecord.operation"
+                  hide-details
+                  :items="[
+                    { text: 'Vendor Creation', value: 'create' },
+                    { text: 'Vendor Update', value: 'update' },
+                  ]"
+                  dense
+                  outlined
+                />
+              </v-col>
+              <v-col cols="12">
+                <v-select
+                  label="Student address"
+                  :items="student.addresses"
+                  v-model="newRecord.address_id"
+                  item-text="address_display"
+                  item-value="id"
+                  class="my-1"
+                  outlined
+                  dense
+                  hide-details
+                  background-color="white"
+                />
+              </v-col>
+              <v-col cols="12" v-if="newRecord.operation == 'update'">
+                <v-switch
+                  label="Update address to match above?"
+                  class="my-2"
+                  v-model="newRecord.is_address_update"
+                  hide-details
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="4">
+                <v-radio
+                  value="cheque"
+                  :label="newRecord.operation == 'create' ? 'Setup to receive cheques' : 'Update banking info'"
+                  hide-details
+                />
+              </v-col>
+              <v-col cols="4">
+                <v-radio value="direct" label="Setup for direct deposit" hide-details />
+              </v-col>
+              <v-col cols="4" v-if="newRecord.operation != 'create'">
+                <v-radio value="none" label="No change to banking" hide-details />
+              </v-col>
+            </v-row>
 
-            <v-col cols="5">
-              <v-switch
-                label="Setup direct deposit?"
-                v-model="newRecord.is_direct_deposit_update"
-                hide-details
-                class="my-3 mt-2"
-            /></v-col>
+            <v-row v-if="newRecord.operation == 'update'">
+              <v-col cols="12">
+                <v-switch
+                  label="Name change (due to special circumstances)?"
+                  v-model="newRecord.is_name_change_update"
+                  class="my-1"
+                />
+                <v-text-field
+                  v-if="newRecord.is_name_change_update"
+                  v-model="newRecord.name_change_comment"
+                  label="Name change comment"
+                  dense
+                  outlined
+                  hide-details
+                />
+              </v-col>
+            </v-row>
+          </v-radio-group>
 
-            <v-col cols="12" v-if="newRecord.operation == 'update'">
-              <v-switch
-                label="Name change (due to special circumstances)?"
-                v-model="newRecord.is_name_change_update"
-                class="my-1"
-              />
-              <v-text-field
-                v-if="newRecord.is_name_change_update"
-                v-model="newRecord.name_change_comment"
-                label="Name change comment"
-                dense
-                outlined
-                hide-details
-              />
-            </v-col>
-          </v-row>
           <v-btn color="primary" class="mt-5" @click="addVendorRequest" :disabled="!canSaveRequest">Save</v-btn>
+
+          <br />{{ newRecord }}
         </v-card-text>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="showEdit" max-width="800px">
       <v-toolbar dark color="primary">
-        <v-toolbar-title>Vendor Request Update</v-toolbar-title>
+        <v-toolbar-title>Vendor Request </v-toolbar-title>
         <v-spacer />
         <v-icon @click="showEdit = false">mdi-close</v-icon>
       </v-toolbar>
       <v-card>
+        {{ editRecord }}
+
         <v-card-text class="pt-4" v-if="editRecord">
           <div v-if="!editRecord.update_completed_date && editRecord.update_requested_date">
             <p>Once this request has been completed and the verified, please click the 'Mark Complete'</p>
@@ -236,6 +242,8 @@ export default {
       { text: "", value: "download" },
     ],
     editRecord: null,
+
+    paymentChoice: "direct",
   }),
   computed: {
     student: function() {
@@ -264,6 +272,29 @@ export default {
       return !isNil(this.newRecord.address_id);
     },
   },
+  watch: {
+    paymentChoice(nv) {
+      if (nv == "direct") {
+        this.newRecord.is_direct_deposit_update = true;
+        this.newRecord.is_banking_update = false;
+      } else if (nv == "none") {
+        this.newRecord.is_direct_deposit_update = false;
+        this.newRecord.is_banking_update = false;
+      } else {
+        this.newRecord.is_direct_deposit_update = false;
+        this.newRecord.is_banking_update = true;
+      }
+    },
+    "newRecord.operation"(nv) {
+      if (nv == "create") {
+        this.newRecord.is_name_change_update = false;
+        this.newRecord.name_change_comment = null;
+        this.newRecord.is_address_update = false;
+        this.newRecord.is_direct_deposit_update = true;
+        this.paymentChoice = "direct";
+      }
+    },
+  },
   created() {
     this.validate = validator;
     this.getVendorData();
@@ -277,7 +308,7 @@ export default {
         operation,
         is_address_update: false,
         is_banking_update: false,
-        is_direct_deposit_update: false,
+        is_direct_deposit_update: true,
         is_name_change_update: false,
         name_change_comment: null,
         address_id: null,

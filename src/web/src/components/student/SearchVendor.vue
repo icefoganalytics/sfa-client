@@ -12,7 +12,7 @@
 
       <v-card-text class="pt-4">
         <v-row>
-          <v-col cols="6">
+          <v-col cols="12">
             <v-text-field
               v-model="searcher"
               label="Search"
@@ -24,10 +24,10 @@
               hint="Enter a search term and press Enter"
               persistent-hint
           /></v-col>
-          <v-col cols="6" class="d-flex">
+          <!--  <v-col cols="6" class="d-flex">
             <v-switch label="Vendor ID" v-model="filterVendorId" class="my-1" />
             <v-switch label="Vendor Name" v-model="filterVendorName" class=" ml-5 my-1" />
-          </v-col>
+          </v-col> -->
         </v-row>
 
         <v-data-table
@@ -35,8 +35,8 @@
           :loading="loading"
           @click:row="enterSelect"
           :headers="[
-            { text: 'Vendor ID', value: 'VendorId', sortable: false, filterable: filterVendorId },
-            { text: 'Vendor Name', value: 'VendName', sortable: false, filterable: filterVendorName },
+            { text: 'Vendor ID', value: 'VendorId', sortable: false /* filterable: filterVendorId */ },
+            { text: 'Vendor Name', value: 'VendName', sortable: false /* filterable: filterVendorName */ },
           ]"
           :items="vendorList"
         >
@@ -73,8 +73,8 @@ export default {
   data: () => ({
     loading: false,
     searcher: "",
-    filterVendorId: true,
-    filterVendorName: true,
+    /* filterVendorId: true,
+    filterVendorName: true, */
     title: "",
     current: null,
   }),
