@@ -321,10 +321,9 @@ export default class ReportingService {
       row.sfa_harach_amount = rowPays.find((r: any) => r.requestTypeId == 9)?.disbursedAmount ?? 0;
       row.sfa_art_amount = rowPays.find((r: any) => r.requestTypeId == 10)?.disbursedAmount ?? 0;
       row.sfa_husky_amount = rowPays.find((r: any) => r.requestTypeId == 11)?.disbursedAmount ?? 0;
-      row.total_gov_amount =
-        row.yukon_grant_amount +
-        row.sta_amount +
-        row.yea_amount +
+      row.total_gov_amount = row.yukon_grant_amount + row.sta_amount + row.yea_amount;
+      row.total_amount =
+        row.total_gov_amount +
         row.csl_ft_amount +
         row.csg_ft_amount +
         row.csg_tu_amount +
@@ -333,9 +332,11 @@ export default class ReportingService {
         row.csg_ftdis_amount +
         row.csl_pt_amount +
         row.csg_pt_amount +
-        row.csg_ptdep_amount;
-      row.total_amount =
-        row.total_gov_amount + row.sfa_army_amount + row.sfa_harach_amount + row.sfa_art_amount + row.sfa_husky_amount;
+        row.csg_ptdep_amount +
+        row.sfa_army_amount +
+        row.sfa_harach_amount +
+        row.sfa_art_amount +
+        row.sfa_husky_amount;
 
       let staCount = rowDepends.filter((r: any) => r.isStaEligible).length;
       let csl0Count = rowDepends.filter((r: any) => r.isCslEligible && r.age < 12).length;
@@ -416,7 +417,6 @@ export default class ReportingService {
 
     if (format == "csv") {
       //since it's a CSV, we need to update the items so they don't show up multiple times
-
       /* for (let item of results) {
         await db("vendor_update").where({ id: item.id }).update({ update_requested_date: new Date() });
       } */
