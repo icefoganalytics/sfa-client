@@ -154,8 +154,6 @@
           </v-radio-group>
 
           <v-btn color="primary" class="mt-5" @click="addVendorRequest" :disabled="!canSaveRequest">Save</v-btn>
-
-          <br />{{ newRecord }}
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -167,8 +165,6 @@
         <v-icon @click="showEdit = false">mdi-close</v-icon>
       </v-toolbar>
       <v-card>
-        {{ editRecord }}
-
         <v-card-text class="pt-4" v-if="editRecord">
           <div v-if="!editRecord.update_completed_date && editRecord.update_requested_date">
             <p>Once this request has been completed and the verified, please click the 'Mark Complete'</p>
@@ -318,6 +314,7 @@ export default {
     },
 
     showModal(show = true) {
+      if (show) this.vendorList = [];
       this.dialogModel = show;
     },
     doSaveStudent(field, value, type, extraId = null, addressType = "") {
