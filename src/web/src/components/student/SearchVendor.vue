@@ -24,10 +24,6 @@
               hint="Enter a search term and press Enter"
               persistent-hint
           /></v-col>
-          <!--  <v-col cols="6" class="d-flex">
-            <v-switch label="Vendor ID" v-model="filterVendorId" class="my-1" />
-            <v-switch label="Vendor Name" v-model="filterVendorName" class=" ml-5 my-1" />
-          </v-col> -->
         </v-row>
 
         <v-data-table
@@ -35,13 +31,12 @@
           :loading="loading"
           @click:row="enterSelect"
           :headers="[
-            { text: 'Vendor ID', value: 'VendorId', sortable: false /* filterable: filterVendorId */ },
-            { text: 'Vendor Name', value: 'VendName', sortable: false /* filterable: filterVendorName */ },
+            { text: 'Vendor ID', value: 'VendorId' },
+            { text: 'Vendor Name', value: 'VendName' },
           ]"
           :items="vendorList"
         >
           <template v-slot:item="i">
-            <!-- Since v-slot:item overrides how each row is rendered, I rebuild the row starting from <tr>. This allows me to add a class to <tr> based on any condition I want (in this case, the calorie count) -->
             <tr :class="i.item.VendorId === current?.VendorId && 'success'" @click="enterSelect(i.item)">
               <td>{{ i.item.VendorId }}</td>
               <td>{{ i.item.VendName }}</td>
@@ -73,8 +68,6 @@ export default {
   data: () => ({
     loading: false,
     searcher: "",
-    /* filterVendorId: true,
-    filterVendorName: true, */
     title: "",
     current: null,
   }),
@@ -86,6 +79,12 @@ export default {
   watch: {
     searcher(val) {
       store.dispatch("setSearch", val);
+    },
+    async dialogModel(nv) {
+      if (nv) {
+        this.searcher = `${this.student.first_name} ${this.student.last_name}`;
+        await this.vendorSearchClick();
+      }
     },
   },
   methods: {
