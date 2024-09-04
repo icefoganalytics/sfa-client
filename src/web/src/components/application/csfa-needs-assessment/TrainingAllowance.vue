@@ -61,7 +61,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :value="assessment.assessed_date?.slice(0, 10)"
-                          label="Assessed Date"
+                          label="Assessed date"
                           append-icon="mdi-calendar"
                           hide-details
                           readonly
@@ -97,7 +97,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :value="assessment.effective_rate_date?.slice(0, 10)"
-                          label="Effective Rate Date"
+                          label="Effective rate date"
                           append-icon="mdi-calendar"
                           hide-details
                           readonly
@@ -135,7 +135,7 @@
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
                       :value="assessment.classes_end_date?.slice(0, 10)"
-                      label="Classes End Date"
+                      label="Classes end date"
                       append-icon="mdi-lock"
                       hide-details
                       readonly
@@ -152,7 +152,7 @@
                       dense
                       background-color="white"
                       hide-details
-                      label="Home Community"
+                      label="Home community"
                       :items="cities"
                       item-text="description"
                       item-value="id"
@@ -166,7 +166,7 @@
                       dense
                       background-color="white"
                       hide-details
-                      label="Institution Community"
+                      label="Institution community"
                       :items="cities"
                       item-text="description"
                       item-value="id"
@@ -182,7 +182,7 @@
                       background-color="#ddd"
                       append-icon="mdi-lock"
                       hide-details
-                      label="Dependent Count"
+                      label="Dependent count"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.dependent_count"
                       @change="refresh"
@@ -197,7 +197,7 @@
                       background-color="#ddd"
                       append-icon="mdi-lock"
                       hide-details
-                      label="Entitlement Days"
+                      label="Entitlement days"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.entitlement_days"
                       @change="refresh"
@@ -211,7 +211,7 @@
                       background-color="#ddd"
                       append-icon="mdi-lock"
                       hide-details
-                      label="2nd Residence Rate"
+                      label="2nd residence rate"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.second_residence_rate"
                       @change="refresh"
@@ -268,7 +268,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Previous Weeks"
+                      label="Previous weeks"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.previous_weeks"
                     ></v-text-field>
@@ -281,7 +281,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Previous Upgrade Weeks"
+                      label="Previous upgrade weeks"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.previous_upgrade_weeks"
                     ></v-text-field>
@@ -296,7 +296,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Assessed Weeks"
+                      label="Assessed weeks"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.assessed_weeks"
                     ></v-text-field>
@@ -314,7 +314,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Allowed Weeks"
+                      label="Allowed weeks"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.weeks_allowed"
                     ></v-text-field>
@@ -327,7 +327,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Weekly Amount"
+                      label="Weekly amount"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.weekly_amount"
                     ></v-text-field>
@@ -347,7 +347,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Travel Allowance"
+                      label="Travel allowance"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.travel_allowance"
                     ></v-text-field>
@@ -379,7 +379,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Assessed Amount"
+                      label="Assessed amount"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.assessed_amount"
                     ></v-text-field>
@@ -392,7 +392,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Previous Disbursement"
+                      label="Previous disbursement"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.previous_disbursement"
                     ></v-text-field>
@@ -405,7 +405,7 @@
                       background-color="#ddd"
                       append-icon="mdi-calculator"
                       hide-details
-                      label="Net Amount"
+                      label="Net amount"
                       @keypress="validate.isNumber($event)"
                       v-model="assessment.net_amount"
                     ></v-text-field>
@@ -425,7 +425,7 @@
       </div>
       <div class="col-lg-12">
         <v-card class="default mb-5 bg-color-blue">
-          <v-card-title>Disbursement (s)</v-card-title>
+          <v-card-title>Disbursements</v-card-title>
           <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
             <div
               :class="[
