@@ -8,7 +8,7 @@
             <div class="col-xs-12 col-lg-4 nopadding d-flex">
               <div class="col-xs-4 col-sm-4">
                 <v-btn
-                  :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
+                  :readonly="!isPreviewCharged && !isChanging && !editingDisburse"
                   dense
                   color="green"
                   class="my-0"
@@ -19,7 +19,7 @@
               </div>
               <div class="col-xs-4 col-sm-4">
                 <v-btn
-                  :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
+                  :readonly="!isPreviewCharged && !isChanging && !editingDisburse"
                   dense
                   color="orange"
                   class="my-0"
@@ -97,43 +97,16 @@
                     </v-menu>
                   </div>
                   <div class="col-xs-12 col-lg-12">
-                    <v-menu
-                      disabled
-                      v-model="effective_rate_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          disabled
-                          :value="customAssessment.effective_rate_date?.slice(0, 10)"
-                          label="Effective rate date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        disabled
-                        @change="refreshData"
-                        :value="customAssessment.effective_rate_date?.slice(0, 10)"
-                        @input="
-                          (e) => {
-                            customAssessment.effective_rate_date = e;
-                            effective_rate_date_menu = false;
-                          }
-                        "
-                      ></v-date-picker>
-                    </v-menu>
+                    <v-text-field
+                      :value="customAssessment.effective_rate_date?.slice(0, 10)"
+                      label="Effective rate date"
+                      append-icon="mdi-lock"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="#ddd"
+                    ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12 mobile-noppading-bottom">
                     <v-select
@@ -161,86 +134,43 @@
                 </div>
                 <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12 clss-st-date-re-order">
-                    <v-menu
-                      disabled
-                      v-model="classes_start_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          disabled
-                          :value="customAssessment.classes_start_date?.slice(0, 10)"
-                          label="Classes start date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        disabled
-                        @change="refreshData"
-                        :value="customAssessment.classes_start_date?.slice(0, 10)"
-                        @input="
-                          (e) => {
-                            customAssessment.classes_start_date = e;
-                            classes_start_date_menu = false;
-                          }
-                        "
-                      ></v-date-picker>
-                    </v-menu>
+                    <v-text-field
+                      :value="customAssessment.classes_start_date?.slice(0, 10)"
+                      label="Classes start date"
+                      append-icon="mdi-lock"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="#ddd"
+                    ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12 clss-en-date-re-order mobile-low-margin">
-                    <v-menu
-                      disabled
-                      v-model="classes_end_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          disabled
-                          :value="customAssessment.classes_end_date?.slice(0, 10)"
-                          label="Classes end date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        disabled
-                        @change="refreshData"
-                        :value="customAssessment.classes_end_date?.slice(0, 10)"
-                        @input="
-                          (e) => {
-                            customAssessment.classes_end_date = e;
-                            classes_end_date_menu = false;
-                          }
-                        "
-                      ></v-date-picker>
-                    </v-menu>
+                    <v-text-field
+                      :value="customAssessment.classes_end_date?.slice(0, 10)"
+                      label="Classes end date"
+                      append-icon="mdi-lock"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="#ddd"
+                    ></v-text-field>
                   </div>
                   <div
                     class="col-xs-12 col-lg-12 line-jump-height d-flex align-center help-txt-re-order mobile-noppading-top"
-                  ></div>
+                  >
+                    <v-text-field
+                      :value="totalYGSTAFundWeeks"
+                      label="YG STA Funded Weeks"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="#ddd"
+                      append-icon="mdi-calculator"
+                    />
+                  </div>
                 </div>
                 <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
@@ -271,7 +201,18 @@
                       item-value="id"
                     ></v-select>
                   </div>
-                  <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
+                  <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx">
+                    <v-text-field
+                      :value="totalYGSOTTravel"
+                      label="YG Outside Travel Count"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="#ddd"
+                      append-icon="mdi-calculator"
+                    />
+                  </div>
                 </div>
               </div>
               <div
@@ -304,7 +245,7 @@
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
                       background-color="white"
@@ -349,7 +290,7 @@
                 <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
                       background-color="white"
@@ -369,10 +310,11 @@
                 <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ddd"
+                      append-icon="mdi-calculator"
                       hide-details
                       label="Previous weeks"
                       :value="customAssessment?.read_only_data?.previous_weeks ?? 0"
@@ -385,10 +327,11 @@
                 <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
                       outlined
+                      readonly
                       dense
-                      background-color="white"
+                      background-color="#ddd"
+                      append-icon="mdi-calculator"
                       hide-details
                       label="Assessed weeks"
                       :value="customAssessment?.read_only_data?.assessed_weeks ?? 0"
@@ -402,9 +345,10 @@
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
                       outlined
-                      disabled
+                      readonly
                       dense
-                      background-color="white"
+                      background-color="#ddd"
+                      append-icon="mdi-calculator"
                       hide-details
                       label="Allowed weeks"
                       v-model="customAssessment.weeks_allowed"
@@ -413,13 +357,13 @@
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
                       outlined
-                      disabled
+                      readonly
                       dense
-                      background-color="white"
+                      background-color="#ddd"
+                      append-icon="mdi-calculator"
                       hide-details
                       label="Weekly amount"
-                      :value="customAssessment.weekly_amount"
-                      v-currency
+                      :value="formatMoney(customAssessment.weekly_amount)"
                     ></v-text-field>
                   </div>
                 </div>
@@ -439,7 +383,7 @@
                 <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap mobile-custom-border">
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
                       background-color="white"
@@ -451,7 +395,7 @@
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       @keypress="validate.isNumber($event)"
                       outlined
                       dense
@@ -505,7 +449,7 @@
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
                       background-color="white"
@@ -516,7 +460,7 @@
                   </div>
                   <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
                       background-color="white"
@@ -529,7 +473,7 @@
                 <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
                   <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
                     <v-btn
-                      :disabled="isDisburseBlocked"
+                      :readonly="isDisburseBlocked"
                       @click="
                         (e) => {
                           if (!isDisburseBlocked) {
@@ -573,7 +517,7 @@
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-text-field
-                      disabled
+                      readonly
                       outlined
                       dense
                       background-color="white"
@@ -615,6 +559,7 @@ import store from "../../../store";
 import { mapGetters } from "vuex";
 import validator from "@/validator";
 import Disbursement from "./Disbursement.vue";
+import { isNumber } from "lodash";
 
 export default {
   name: "YukonGrant",
@@ -664,8 +609,22 @@ export default {
       "disbursements",
     ]),
     ...mapGetters({ application: "selectedApplication" }),
+    ...mapGetters({ student: "selectedStudent" }),
     programDivision() {
       return this.application?.program_division;
+    },
+
+    totalYGSTAFundWeeks() {
+      const total =
+        this.student.post_leg_weeks + this.student.pre_leg_weeks + Number(this.student.adj_yg_funding_weeks);
+      return total || 0;
+    },
+    totalYGSOTTravel() {
+      const total =
+        this.student.post_leg_outside_travel +
+        this.student.pre_leg_outside_travel +
+        Number(this.student.adj_outside_travel_cnt);
+      return total || 0;
     },
   },
   watch: {
@@ -692,6 +651,15 @@ export default {
     },
   },
   methods: {
+    formatMoney(input) {
+      if (isNumber(input)) {
+        return Intl.NumberFormat("en", {
+          currency: "USD",
+          style: "currency",
+        }).format(input);
+      }
+      return "asdf";
+    },
     saveClick() {
       if (!this.customAssessment.id) {
         if (this.isPreviewCharged) {
