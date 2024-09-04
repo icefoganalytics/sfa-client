@@ -57,6 +57,26 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         assess.destination_city_id || 0,
       ])) || 0;
 
+    const travel = await this.mainDb.raw(
+      `SELECT sfa.fn_get_post_leg_outside_travel(${this.application.student_id}) post_leg, sfa.fn_get_pre_leg_outside_travel(${this.application.student_id}) pre_leg`
+    );
+
+    let preLegTravel = 0;
+    let postLegTravel = 0;
+    let adjTravel = 0;
+
+    if (travel && travel.length > 0) {
+      const row = travel[0];
+      preLegTravel = row.pre_leg;
+      postLegTravel = row.post_leg;
+    }
+
+    const travelTotal = preLegTravel + postLegTravel + adjTravel;
+
+    if (travelTotal >= 6) {
+      assess.airfare_amount = 0;
+    }
+
     if (this.application.is_correspondence) {
       assess.travel_allowance = 0;
       assess.airfare_amount = 0;
