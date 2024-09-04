@@ -1099,7 +1099,7 @@ function cleanDollars(input: number | undefined) {
   return value;
 }
 
-async function calculateFamilySize(
+export async function calculateFamilySize(
   db: Knex,
   classification: number,
   applicationId: number
@@ -1204,7 +1204,7 @@ async function calculateFamilySize(
       hasParent2 = true;
     }
 
-    logger.info(`PARENT INFO: ${hasParent1}, ${hasParent2}`);
+    //logger.info(`PARENT INFO: ${hasParent1}, ${hasParent2}`);
 
     family.total_dependants = 1 + parentDeps.length;
 
@@ -1221,7 +1221,7 @@ async function calculateFamilySize(
     family.family_size = 1;
   }
 
-  logger.info(`FAMILY SIZE - ${family.family_size}`);
+  //logger.info(`FAMILY SIZE - ${family.family_size}`);
 
   return family;
 }

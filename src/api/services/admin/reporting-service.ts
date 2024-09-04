@@ -6,6 +6,7 @@ import { NarsV17ReportingService } from "./nars-v17-reporting-service";
 import { NarsPTReportingService } from "./nars-pt-reporting-service";
 import { NarsDisabilityReportingService } from "./nars-dis-reporting-service";
 import { NarsDisabilityRCLReportingService } from "./nars-disft-reporting-service";
+import { calculateFamilySize } from "@/repositories/assessment/assessment-cslft-repository-v2";
 
 export const STA_YUKON_UNIVERSITY_TEMPLATE = "./templates/admin/reports/student-training-allowance-yukon-university";
 
@@ -251,7 +252,7 @@ export default class ReportingService {
           , application.parent1_income, application.parent2_income, application.student_ln150_income, application.spouse_ln150_income
           , application.classes_start_date, application.classes_end_date
           , mail_address.address1 mail_address_line1, mail_address.address2 mail_address_line2, mail_address.city mail_address_city, mail_address.province mail_address_province, mail_address.country mail_address_country, mail_address.postal_code mail_address_postal_code
-          , application.school_email, application.school_telephone
+          , application.school_email, application.school_telephone, application.id as application_id
         FROM sfa.funding_request
           INNER JOIN sfa.application ON funding_request.application_id = application.id
           INNER JOIN sfa.student ON application.student_id = student.id
@@ -288,7 +289,7 @@ export default class ReportingService {
         INNER JOIN sfa.assessment ON disbursement.assessment_id = assessment.id
         INNER JOIN sfa.funding_request ON disbursement.funding_request_id = funding_request.id and funding_request.status_id = 7
         INNER JOIN sfa.application ON funding_request.application_id = application.id
-        WHERE application.academic_year_id = 2022
+        WHERE application.academic_year_id = ${academic_year_id}
         GROUP BY student_id, request_type_id
         ORDER BY student_id`);
 
@@ -298,12 +299,14 @@ export default class ReportingService {
         FROM sfa.dependent_eligibility
         INNER JOIN sfa.application on dependent_eligibility.application_id = application.id
         INNER JOIN sfa.dependent on dependent.id  = dependent_eligibility.dependent_id
-        WHERE application.academic_year_id = 2022
+        WHERE application.academic_year_id = ${academic_year_id}
           AND (dependent_eligibility.is_sta_eligible = 1 OR dependent_eligibility.is_csl_eligible = 1)`);
 
     for (let row of results) {
       let rowPays = payments.filter((p: any) => p.studentId == row.sfaId);
       let rowDepends = dependents.filter((p: any) => p.studentId == row.sfaId);
+
+      console.log("rowDepends", rowDepends);
 
       row.yukon_grant_amount = rowPays.find((r: any) => r.requestTypeId == 2)?.disbursedAmount ?? 0;
       row.sta_amount = rowPays.find((r: any) => r.requestTypeId == 1)?.disbursedAmount ?? 0;
@@ -338,18 +341,20 @@ export default class ReportingService {
         row.sfa_art_amount +
         row.sfa_husky_amount;
 
-      let staCount = rowDepends.filter((r: any) => r.isStaEligible).length;
-      let csl0Count = rowDepends.filter((r: any) => r.isCslEligible && r.age < 12).length;
-      let csl12Count = rowDepends.filter((r: any) => r.isCslEligible && r.age > 11).length;
+      const family = await calculateFamilySize(db, row.csl_classification, row.application_id);
+
+      let staCount = family.sta_dependants;
+      let csl0Count = family.under12_or_disabled;
+      let csl12Count = family.over11;
 
       row.sta_dependants = staCount;
       row.csl_dependants_0_11 = csl0Count;
       row.csl_dependants_12_up = csl12Count;
       row.csl_dependants_total = csl0Count + csl12Count;
+      row.csl_family_size = family.family_size;
 
-      let csl_family_size = 99;
+      //console.log("FAMILY", row)
 
-      row.csl_family_size = 99;
     }
 
     return results;
