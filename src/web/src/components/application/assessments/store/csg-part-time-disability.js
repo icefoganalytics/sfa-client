@@ -222,7 +222,7 @@ const actions = {
 
       disbursedValues.push({
         disbursed_amount: amount,
-        disbursement_type_id: 4,
+        disbursement_type_id: 3,
         issue_date: moment().format("YYYY-MM-DD"), // today
       });
     }
@@ -231,7 +231,7 @@ const actions = {
 
     disbursedValues.push({
       disbursed_amount: remainder,
-      disbursement_type_id: 4,
+      disbursement_type_id: 3,
       issue_date: moment().format("YYYY-MM-DD"),
     });
 
@@ -256,7 +256,7 @@ const actions = {
 
   async addDisbursement({ state }) {
     state.disbursements.push({
-      disbursement_type_id: 4,
+      disbursement_type_id: 3,
       issue_date: moment().format("YYYY-MM-DD"), // today
     });
   },
