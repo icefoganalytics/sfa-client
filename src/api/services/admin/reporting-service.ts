@@ -252,13 +252,11 @@ export default class ReportingService {
           , application.parent1_income, application.parent2_income, application.student_ln150_income, application.spouse_ln150_income
           , application.classes_start_date, application.classes_end_date
           , mail_address.address1 mail_address_line1, mail_address.address2 mail_address_line2, mail_address.city mail_address_city, mail_address.province mail_address_province, mail_address.country mail_address_country, mail_address.postal_code mail_address_postal_code
-          , application.school_email, application.school_telephone, application.id as application_id
+          , application.school_email, application.school_telephone, application.id as application_id, assess.family_size
         FROM sfa.funding_request
           INNER JOIN sfa.application ON funding_request.application_id = application.id
           INNER JOIN sfa.student ON application.student_id = student.id
           INNER JOIN sfa.person ON student.person_id = person.id
-          INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
-          INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
           INNER JOIN sfa.sex on person.sex_id = sex.id
           INNER JOIN sfa.institution_campus on application.institution_campus_id = institution_campus.id
           LEFT JOIN sfa.country institution_country on institution_country.id = institution_campus.address_country_id
@@ -279,34 +277,27 @@ export default class ReportingService {
           LEFT JOIN sfa.accommodation_type study_accomodation ON study_accomodation.id = application.study_accom_code
           LEFT JOIN sfa.person_address on application.primary_address_id = person_address.id
           LEFT JOIN sfa.v_current_person_address mail_address on (mail_address.address_type_id = 1 and mail_address.person_id = student.person_id)
+          INNER JOIN (SELECT application_id, MAX(family_size) family_size FROM sfa.funding_request 
+              INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
+              INNER JOIN sfa.disbursement ON disbursement.assessment_id = assessment.id
+              WHERE funding_request.status_id = 7 
+              GROUP BY application_id) assess ON assess.application_id = application.id
         WHERE application.academic_year_id = ${academic_year_id} and funding_request.status_id = 7
         ORDER BY student.id`
     );
 
     let payments =
-      await db.raw(`SELECT application.student_id, funding_request.request_type_id, SUM(disbursement.disbursed_amount) disbursed_amount
+      await db.raw(`SELECT application.id application_id, application.student_id, funding_request.request_type_id, SUM(disbursement.disbursed_amount) disbursed_amount
         FROM sfa.disbursement
         INNER JOIN sfa.assessment ON disbursement.assessment_id = assessment.id
         INNER JOIN sfa.funding_request ON disbursement.funding_request_id = funding_request.id and funding_request.status_id = 7
         INNER JOIN sfa.application ON funding_request.application_id = application.id
         WHERE application.academic_year_id = ${academic_year_id}
-        GROUP BY student_id, request_type_id
-        ORDER BY student_id`);
-
-    let dependents =
-      await db.raw(`SELECT application.student_id, dependent_eligibility.is_sta_eligible, dependent_eligibility.is_csl_eligible, birth_date
-        ,(0 + FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(dependent.birth_date,'yyyyMMdd')) / 10000 age
-        FROM sfa.dependent_eligibility
-        INNER JOIN sfa.application on dependent_eligibility.application_id = application.id
-        INNER JOIN sfa.dependent on dependent.id  = dependent_eligibility.dependent_id
-        WHERE application.academic_year_id = ${academic_year_id}
-          AND (dependent_eligibility.is_sta_eligible = 1 OR dependent_eligibility.is_csl_eligible = 1)`);
+        GROUP BY application.id, student_id, request_type_id
+        ORDER BY application_id`);
 
     for (let row of results) {
-      let rowPays = payments.filter((p: any) => p.studentId == row.sfaId);
-      let rowDepends = dependents.filter((p: any) => p.studentId == row.sfaId);
-
-      console.log("rowDepends", rowDepends);
+      let rowPays = payments.filter((p: any) => p.applicationId == row.applicationId);
 
       row.yukon_grant_amount = rowPays.find((r: any) => r.requestTypeId == 2)?.disbursedAmount ?? 0;
       row.sta_amount = rowPays.find((r: any) => r.requestTypeId == 1)?.disbursedAmount ?? 0;
@@ -351,10 +342,7 @@ export default class ReportingService {
       row.csl_dependants_0_11 = csl0Count;
       row.csl_dependants_12_up = csl12Count;
       row.csl_dependants_total = csl0Count + csl12Count;
-      row.csl_family_size = family.family_size;
-
-      //console.log("FAMILY", row)
-
+      row.csl_family_size = row.familySize ?? 99;
     }
 
     return results;

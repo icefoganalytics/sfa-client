@@ -196,7 +196,9 @@ const actions = {
             `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
             state.assessment
           )
-          .then((resp) => {});
+          .then((resp) => {
+            dispatch("loadCSGDSEAssessment", { id: state.fundingRequest.application_id });
+          });
       }
     }
   },

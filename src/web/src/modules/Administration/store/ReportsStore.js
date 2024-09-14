@@ -407,25 +407,18 @@ const state = {
         { text: "csl_dependants_12_up", value: "csl_dependants_12_up" },
         { text: "csl_dependants_total", value: "csl_dependants_total" },
 
-        { text: "csl_family_size", value: "csl_family_size" },
+        { text: "csl_family_size", value: "familySize" },
 
         { text: "prestudy_csl_classification", value: "prestudyCslClassification" },
         { text: "prestudy_accomodation", value: "prestudyAccomodation" },
         { text: "study_csl_classification", value: "studyCslClassification" },
         { text: "study_accomodation", value: "studyAccomodation" },
 
-        { text: "student_prestudy_income", value: "student_prestudy_income" },
-        { text: "spouse_prestudy_income", value: "spouse_prestudy_income" },
         { text: "studentLn150Income", value: "studentLn150Income" },
         { text: "spouseLn150Income", value: "spouseLn150Income" },
 
         { text: "parent1Income", value: "parent1Income" },
         { text: "parent2Income", value: "parent2Income" },
-        { text: "csl_study_weeks", value: "csl_study_weeks" },
-        { text: "csl_assessed_resources", value: "csl_assessed_resources" },
-        { text: "csl_assessed_expenses", value: "csl_study_weeks" },
-        { text: "csl_assessed_need", value: "csl_assessed_need" },
-        { text: "csl_before_overaward", value: "csl_before_overaward" },
 
         { text: "mailAddressLine1", value: "mailAddressLine1" },
         { text: "mailAddressLine2", value: "mailAddressLine2" },
