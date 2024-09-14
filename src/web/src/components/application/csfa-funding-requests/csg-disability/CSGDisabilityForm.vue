@@ -50,7 +50,7 @@
             >
             <template v-slot:activator="{ on, attrs }">
               <v-text-field 
-                :disabled="showAdd" 
+                :disabled="showAddDisability" 
                 label="Disability start date" 
                 append-icon="mdi-calendar" 
                 readonly
