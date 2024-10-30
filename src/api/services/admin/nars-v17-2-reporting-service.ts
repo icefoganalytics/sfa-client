@@ -33,9 +33,9 @@ export class NarsV17_2ReportingService {
   }
 
   async runReport() {
-    this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
+    //this.allApplications = await db("narsv17base").where({ academic_year_id: 2023 }); //.where({ id: 31665 });
 
-    /* this.allApplications = await db.raw(`select person.sex_id, person.sin, person.birth_date, 
+    this.allApplications = await db.raw(`select person.sex_id, person.sin, person.birth_date, person.id as person_id,
     spouse_person.sin as spouse_sin, 
     parent1_person.sin as parent1_sin,
     parent2_person.sin as parent2_sin,
@@ -70,7 +70,7 @@ export class NarsV17_2ReportingService {
       LEFT JOIN (SELECT SUM(COALESCE(paid_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement WHERE financial_batch_serial_no IS NOT NULL GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
-      funding_request.request_type_id = 4`); */
+      funding_request.request_type_id = 4`);
 
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
@@ -114,6 +114,9 @@ export class NarsV17_2ReportingService {
 
       if (app.primary_country_id && app.primary_country_id != 1) res_postal = "XXXXXX";
     } else {
+
+
+
       let homeAddress = await db("sfa.v_current_person_address")
         .where({
           person_id: app.person_id,
