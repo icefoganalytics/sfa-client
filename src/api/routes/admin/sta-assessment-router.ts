@@ -69,8 +69,6 @@ assessmentSTARouter.post(
       const verifyFundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
 
       if (verifyFundingRequest && verifyFundingRequest?.request_type_id === 1) {
-        console.log("HERE", verifyFundingRequest);
-
         results = await assessmentSTARepo.getNewInfo(
           parseInt(verifyFundingRequest.application_id),
           parseInt(verifyFundingRequest.id),
