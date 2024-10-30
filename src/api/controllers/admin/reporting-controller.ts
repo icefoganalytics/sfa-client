@@ -202,6 +202,96 @@ export default class ReportingController extends BaseController {
     );
   }
 
+  async runNars2023FTReport() {
+    return ReportingService.runNars2023FTReport({ format: this.format }).then((reportData) => {
+      if (this.format == "html") {
+        this.response.send(reportData);
+      } else if (this.format == "csv") {
+        this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.NARS_2324.001.csv"`);
+        this.response.setHeader("Content-type", "text/csv");
+        this.response.send(reportData);
+      } else if (this.format == "json") {
+        this.response.json(reportData);
+      } else {
+        this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.NARS_2324.001.txt"`);
+        this.response.setHeader("Content-type", "text/plain");
+        this.response.send(reportData);
+      }
+    });
+  }
+
+  async runNars2023PTReport() {
+    return ReportingService.runNars2023PTReport({ format: this.format }).then((reportData) => {
+      if (this.format == "html") {
+        this.response.send(reportData);
+      } else if (this.format == "csv") {
+        this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.PT_NARS_2324.001.csv"`);
+        this.response.setHeader("Content-type", "text/csv");
+        this.response.send(reportData);
+      } else if (this.format == "json") {
+        this.response.json(reportData);
+      } else {
+        this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.PT_NARS_2324.001.txt"`);
+        this.response.setHeader("Content-type", "text/plain");
+        this.response.send(reportData);
+      }
+    });
+  }
+
+  async runNars2023DisabilityReport() {
+    let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
+    return ReportingService.runNars2023DisabilityReport({ format: this.format, academic_year_id }).then(
+      (reportData) => {
+        if (this.format == "html") {
+          this.response.send(reportData);
+        } else if (this.format == "csv") {
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDEXPAND_2324.${moment().format("YYYY-MM-DD")}.csv"`
+          );
+          this.response.setHeader("Content-type", "text/csv");
+          this.response.send(reportData);
+        } else if (this.format == "json") {
+          this.response.json(reportData);
+        } else {
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDEXPAND_2324.${moment().format("YYYY-MM-DD")}.txt"`
+          );
+          this.response.setHeader("Content-type", "text/plain");
+          this.response.send(reportData);
+        }
+      }
+    );
+  }
+
+  async runNars2023DisabilityRCLReport() {
+    let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
+    return ReportingService.runNars2023DisabilityRCLReport({ format: this.format, academic_year_id }).then(
+      (reportData) => {
+        if (this.format == "html") {
+          this.response.send(reportData);
+        } else if (this.format == "csv") {
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDReducedCourseLoad_2324.${moment().format("YYYY-MM-DD")}.csv"`
+          );
+          this.response.setHeader("Content-type", "text/csv");
+          this.response.send(reportData);
+        } else if (this.format == "json") {
+          this.response.json(reportData);
+        } else {
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDReducedCourseLoad_2324.${moment().format("YYYY-MM-DD")}.txt"`
+          );
+          this.response.setHeader("Content-type", "text/plain");
+          this.response.send(reportData);
+        }
+      }
+    );
+  }
+
   async runStepReport() {
     let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
 
