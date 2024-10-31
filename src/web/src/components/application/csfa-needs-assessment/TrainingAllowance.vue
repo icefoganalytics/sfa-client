@@ -48,7 +48,7 @@
             <div class="col-xs-12 col-lg-8 nopadding left-block-container">
               <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin">
                 <div class="col-xs-12 col-lg-4 nopadding">
-                  <div class="col-xs-12 col-lg-12" >
+                  <div class="col-xs-12 col-lg-12">
                     <v-menu
                       v-model="assessed_date_menu"
                       :close-on-content-click="false"

@@ -15,7 +15,7 @@ const CSGDSE_REQUEST_TYPE_ID = 30;
 const CSFTDEP_REQUEST_TYPE_ID = 32;
 const CSGFT_REQUEST_TYPE_ID = 35;
 
-export class NarsV17ReportingService {
+export class NarsV17_2ReportingService {
   startDate: Date;
   endDate: Date;
   year: number;
@@ -33,9 +33,9 @@ export class NarsV17ReportingService {
   }
 
   async runReport() {
-    //this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
+    //this.allApplications = await db("narsv17base").where({ academic_year_id: 2023 }); //.where({ id: 31665 });
 
-    this.allApplications = await db.raw(`select person.sex_id, person.sin, person.birth_date, 
+    this.allApplications = await db.raw(`select person.sex_id, person.sin, person.birth_date, person.id as person_id,
     spouse_person.sin as spouse_sin, 
     parent1_person.sin as parent1_sin,
     parent2_person.sin as parent2_sin,
@@ -114,6 +114,9 @@ export class NarsV17ReportingService {
 
       if (app.primary_country_id && app.primary_country_id != 1) res_postal = "XXXXXX";
     } else {
+
+
+
       let homeAddress = await db("sfa.v_current_person_address")
         .where({
           person_id: app.person_id,

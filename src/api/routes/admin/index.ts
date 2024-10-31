@@ -175,6 +175,12 @@ adminRouter.use("/reporting/nars2022", routedTo(ReportingController, "runNars202
 adminRouter.use("/reporting/nars2022pt", routedTo(ReportingController, "runNars2022PTReport"));
 adminRouter.use("/reporting/nars2022dis/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityReport"));
 adminRouter.use("/reporting/nars2022disrcl/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityRCLReport"));
+
+adminRouter.use("/reporting/nars2023", routedTo(ReportingController, "runNars2023FTReport"));
+adminRouter.use("/reporting/nars2023pt", routedTo(ReportingController, "runNars2023PTReport"));
+adminRouter.use("/reporting/nars2023dis/:academic_year_id", routedTo(ReportingController, "runNars2023DisabilityReport"));
+adminRouter.use("/reporting/nars2023disrcl/:academic_year_id", routedTo(ReportingController, "runNars2023DisabilityRCLReport"));
+
 adminRouter.use("/reporting/step/:academic_year_id", routedTo(ReportingController, "runStepReport"));
 adminRouter.use("/reporting/approvedFunding/:academic_year_id", routedTo(ReportingController, "runApprovedFundingReport"));
 adminRouter.use("/reporting/t4a/:tax_year", routedTo(ReportingController, "runT4AReport"));

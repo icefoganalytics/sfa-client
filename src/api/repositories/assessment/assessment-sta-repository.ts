@@ -35,9 +35,22 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
     initValues.funding_request_id = funding_request_id;
     initValues.assessed_date = moment().toDate();
-    initValues.effective_rate_date = this.application.classes_start_date;
     initValues.classes_start_date = this.application.classes_start_date;
     initValues.classes_end_date = this.application.classes_end_date;
+
+    const lastAssessment = await this.mainDb("assessment")
+      .withSchema("sfa")
+      .where({ funding_request_id: funding_request_id })
+      .orderBy("assessed_date", "desc")
+      .first();
+
+    if (lastAssessment) {
+      console.log("LAST ONE: ", lastAssessment);
+      initValues.effective_rate_date = lastAssessment.effective_rate_date; // don't override this
+    }
+
+    if (!initValues.effective_rate_date) initValues.effective_rate_date = this.application.classes_start_date;
+
     initValues.home_city_id = await this.getScalarValue<number>("fn_get_home_city", [this.application.student_id || 0]);
     initValues.destination_city_id = await this.getScalarValue<number>("fn_get_institution_city", [application_id]);
     initValues.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count_sta_fct", [application_id]);
@@ -85,9 +98,14 @@ export class AssessmentSTA extends AssessmentBaseRepository {
       application_id,
     ]);
 
+    const allowedWeeksBasedOnEffectiveDate = weeksBetween(
+      initValues.effective_rate_date,
+      this.application.classes_end_date
+    );
+
     initValues.weeks_allowed = await this.getScalarValue<number>("fn_get_weeks_allowed_sta", [
       initValues.previous_weeks || 0,
-      initValues.assessed_weeks || 0,
+      allowedWeeksBasedOnEffectiveDate || 0,
       prev_weeks_curr_yr || 0, // prev_weeks_curr_yr nvl(GET_PREV_WEEKS_CURR_YR('Normal'),0)
     ]);
     initValues.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [

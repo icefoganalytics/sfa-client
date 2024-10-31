@@ -3,6 +3,7 @@ import { unparse } from "papaparse";
 import moment from "moment";
 import { renderReportAsHtml, renderReportAsPdf } from "@/utils/express-handlebars-pdf-client";
 import { NarsV17ReportingService } from "./nars-v17-reporting-service";
+import { NarsV17_2ReportingService } from "./nars-v17-2-reporting-service";
 import { NarsPTReportingService } from "./nars-pt-reporting-service";
 import { NarsDisabilityReportingService } from "./nars-dis-reporting-service";
 import { NarsDisabilityRCLReportingService } from "./nars-disft-reporting-service";
@@ -190,6 +191,102 @@ export default class ReportingService {
     let service = new NarsDisabilityRCLReportingService({
       startDate: new Date("2022-06-01"),
       endDate: new Date("2023-05-31"),
+      year: academic_year_id,
+    });
+
+    let results = await service.runReport();
+
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+    return lines.join("\n");
+  }
+
+  static async runNars2023FTReport({ format = "json" }: { format: string | undefined }): Promise<any> {
+    let service = new NarsV17_2ReportingService({
+      startDate: new Date("2023-06-01"),
+      endDate: new Date("2024-05-31"),
+      year: 2022,
+    });
+
+    let results = await service.runReport();
+
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+    return lines.join("\n");
+  }
+
+  static async runNars2023PTReport({ format = "json" }: { format: string | undefined }): Promise<any> {
+    let service = new NarsPTReportingService({
+      startDate: new Date("2023-06-01"),
+      endDate: new Date("2024-05-31"),
+      year: 2022,
+    });
+
+    let results = await service.runReport();
+
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+    return lines.join("\n");
+  }
+
+  static async runNars2023DisabilityReport({
+    format = "json",
+    academic_year_id,
+  }: {
+    format: string | undefined;
+    academic_year_id: number;
+  }): Promise<any> {
+    let service = new NarsDisabilityReportingService({
+      startDate: new Date("2023-06-01"),
+      endDate: new Date("2024-05-31"),
+      year: academic_year_id,
+    });
+
+    let results = await service.runReport();
+
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+    return lines.join("\n");
+  }
+
+  static async runNars2023DisabilityRCLReport({
+    format = "json",
+    academic_year_id,
+  }: {
+    format: string | undefined;
+    academic_year_id: number;
+  }): Promise<any> {
+    let service = new NarsDisabilityRCLReportingService({
+      startDate: new Date("2023-06-01"),
+      endDate: new Date("2024-05-31"),
       year: academic_year_id,
     });
 
