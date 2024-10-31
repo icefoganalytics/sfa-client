@@ -114,9 +114,6 @@ export class NarsV17_2ReportingService {
 
       if (app.primary_country_id && app.primary_country_id != 1) res_postal = "XXXXXX";
     } else {
-
-
-
       let homeAddress = await db("sfa.v_current_person_address")
         .where({
           person_id: app.person_id,
@@ -125,7 +122,7 @@ export class NarsV17_2ReportingService {
         .first();
 
       if (homeAddress) {
-        res_postal = homeAddress.postal_code.replace(" ", "").replace("-", "");
+        res_postal = (homeAddress.postal_code ?? "").replace(" ", "").replace("-", "");
         if (homeAddress.country != "Canada") res_postal = "XXXXXX";
       }
     }
