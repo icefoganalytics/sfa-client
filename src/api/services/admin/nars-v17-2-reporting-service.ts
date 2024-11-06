@@ -157,7 +157,6 @@ export class NarsV17_2ReportingService {
     let csg_ftdep = 0;
     let csg_d = 0;
     let csg_dse = 0;
-    let topup_fund = 0;
 
     let provGrants = 0;
 
@@ -182,14 +181,12 @@ export class NarsV17_2ReportingService {
       let ftDepGrant = otherFunds.find((f) => f.request_type_id == 32);
       let disGrant = otherFunds.find((f) => f.request_type_id == 29);
       let disSEGrant = otherFunds.find((f) => f.request_type_id == 30);
-      let topup = otherFunds.find((f) => f.request_type_id == 28);
 
       if (ftLoan) csl_ft = Math.ceil(ftLoan.disbursed_amount);
       if (ftGrant) csg_ft = Math.ceil(ftGrant.disbursed_amount);
       if (ftDepGrant) csg_ftdep = Math.ceil(ftDepGrant.disbursed_amount);
       if (disGrant) csg_d = Math.ceil(disGrant.disbursed_amount);
       if (disSEGrant) csg_dse = Math.ceil(disSEGrant.disbursed_amount);
-      if (topup) topup_fund = Math.ceil(topup.disbursed_amount);
 
       let provGr = otherFunds.filter((f) => [1, 2, 3].includes(f.request_type_id));
       provGrants = provGr.map((f) => f.disbursed_amount).reduce((a, f) => a + f, 0);
@@ -365,17 +362,16 @@ export class NarsV17_2ReportingService {
     row.push(new Column("csg_ftdep", csg_ftdep, "0", 6));
     row.push(new Column("csg_d", csg_d, "0", 6));
     row.push(new Column("csg_dse", csg_dse, "0", 6));
-    row.push(new Column("topup_fund", topup_fund, "0", 6));
 
     row.push(new Column("prov_grant_burs_schol_amt", provGrants, "0", 6));
     row.push(new Column("prov_unmet_need_grant_auth_amt", "0", "0", 6)); // likely not relevant
     row.push(new Column("other_prov_assist", "0", "0", 6)); // always 0
 
-    row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund + provGrants, "0", 6));
+    row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + provGrants, "0", 6));
     row.push(
       new Column(
         "unmet_need",
-        totalCosts - tot_ass_res - (csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund + provGrants) + csg_dse,
+        totalCosts - tot_ass_res - (csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + provGrants) + csg_dse,
         "0",
         7
       )
