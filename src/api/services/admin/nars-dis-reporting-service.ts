@@ -91,7 +91,7 @@ export class NarsDisabilityReportingService {
         .select("request_type_id")
         .groupBy("request_type_id")
         .sum("disbursed_amount as disbursed_amount")
-        .min("due_date as disbursed_date")        
+        .min("due_date as disbursed_date")
         .min("issue_date as issue_date");
 
       let disGrant = otherFunds.find((f) => f.request_type_id == 29);
@@ -144,12 +144,14 @@ export class NarsDisabilityReportingService {
 
     row.push(new Column("csg_pd_auth", csg_d, "0", 5));
     row.push(new Column("csg_pd_disb", csg_d, "0", 5));
-    row.push(new Column("csg_pd_authdate", moment.utc(csg_di_date).format("YYYYMMDD"), " ", 8));
+    row.push(new Column("csg_pd_authdate", csg_di_date ? moment.utc(csg_di_date).format("YYYYMMDD") : "", " ", 8));
     row.push(new Column("csg_pd_disbdate", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : "", " ", 8));
 
     row.push(new Column("csg_pdse_auth", csg_dse, "0", 5));
     row.push(new Column("csg_pdse_disb", csg_dse, "0", 5));
-    row.push(new Column("csg_pdse_authdate", moment.utc(csg_dsei_date).format("YYYYMMDD"), " ", 8));
+    row.push(
+      new Column("csg_pdse_authdate", csg_dsei_date ? moment.utc(csg_dsei_date).format("YYYYMMDD") : "", " ", 8)
+    );
     row.push(new Column("csg_pdse_disbdate", csg_dse_date ? moment.utc(csg_dse_date).format("YYYYMMDD") : "", " ", 8));
 
     row.push(new Column("disab_code1", code1, ".", 1));

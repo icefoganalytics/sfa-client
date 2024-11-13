@@ -232,7 +232,7 @@ export class NarsV17_2ReportingService {
     stud_sp_cost_other -= stud_sp_cost_computers;
 
     let req_need = app.csl_request_amount;
-    let tot_ass_res = app.student_expected_contribution;
+    let tot_ass_res = app.student_expected_contribution ?? 0;
 
     if (app.is_csg_only) req_need = 0;
     else if (app.is_csl_full_amount) req_need = app.study_weeks * 210;
@@ -462,7 +462,7 @@ export class Column {
   }
 }
 
-async function calculateFamilySize(
+export async function calculateFamilySize(
   classification: number,
   applicationId: number,
   hasParent1: boolean,

@@ -1,7 +1,8 @@
 import { DB_CONFIG } from "@/config";
+import { calculateFamilySize } from "./nars-v17-2-reporting-service";
 import { weeksBetween } from "@/utils/date-utils";
 import knex from "knex";
-import { isUndefined } from "lodash";
+import { isEmpty, isUndefined } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -87,7 +88,7 @@ export class NarsPTReportingService {
   async makeRows(app: any): Promise<Row[]> {
     let result = new Array<Row>();
 
-    console.log("APPP", app);
+    //console.log("APPP", app);
 
     let num_dep_child_pse = 0;
     let depchild_to_11_and_dis_12over = 0;
@@ -191,6 +192,13 @@ export class NarsPTReportingService {
       console.log("NO APP");
     }
 
+    let family = await calculateFamilySize(
+      app.csl_classification,
+      appId?.application_id ?? 0,
+      !isEmpty(app.parent1_sin),
+      !isEmpty(app.parent2_sin)
+    );
+
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
     row.push(new Column("prov_issue", "YT", " ", 2));
@@ -209,7 +217,7 @@ export class NarsPTReportingService {
     row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_disabled ? "2" : "0", " ", 1));
     row.push(new Column("disab_sr_status", app.is_disabled && !app.is_perm_disabled ? "Y" : "N", " ", 1));
 
-    row.push(new Column("family_size", app.family_size, " ", 2));
+    row.push(new Column("family_size", app.family_size ?? family.family_size, " ", 2));
     row.push(new Column("dep_under12_or_disabled", depchild_to_11_and_dis_12over, " ", 1));
     row.push(new Column("depchild_12over_ndis_andOthDep", depchild_12over_ndis_andothdep, " ", 1));
 
@@ -239,7 +247,7 @@ export class NarsPTReportingService {
 
     row.push(new Column("csl_pt_amt", csl_pt || 0, "0", 5)); // sum of loan disbursements for this assessment
     row.push(new Column("psl_pt_amt", "", "0", 5)); // always 0
-    row.push(new Column("principal_outstanding", app.outstanding_cslpt_amount, "0", 5));
+    row.push(new Column("principal_outstanding", app.outstanding_cslpt_amount ?? "", "0", 5));
 
     row.push(new Column("csg_pt_studies", csg_pt, "0", 5));
     row.push(new Column("csg_ptdep", csg_ptdep, "0", 5));
