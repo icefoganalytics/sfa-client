@@ -81,6 +81,7 @@ portalApplicationRouter.get("/:sub/application/:applicationId/documents", async 
   res.status(404).send();
 });
 
+// returns the documents associated with a draft
 portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
   let student = await studentService.getBySub(sub);
@@ -100,7 +101,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
   res.status(404).send();
 });
 
-//uploads a document
+//uploads a document to a draft
 portalApplicationRouter.post("/:sub/:draftId/upload", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
   const { requirement_type_id, disability_requirement_id, person_id, dependent_id, mimetype, replace, replace_id } =
