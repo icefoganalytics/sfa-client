@@ -81,6 +81,7 @@ portalApplicationRouter.get("/:sub/application/:applicationId/documents", async 
   res.status(404).send();
 });
 
+// returns the documents associated with a draft
 portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
   let student = await studentService.getBySub(sub);
