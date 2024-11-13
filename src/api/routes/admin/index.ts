@@ -178,8 +178,8 @@ adminRouter.use("/reporting/nars2022disrcl/:academic_year_id", routedTo(Reportin
 
 adminRouter.use("/reporting/nars2023", routedTo(ReportingController, "runNars2023FTReport"));
 adminRouter.use("/reporting/nars2023pt", routedTo(ReportingController, "runNars2023PTReport"));
-adminRouter.use("/reporting/nars2023dis/:academic_year_id", routedTo(ReportingController, "runNars2023DisabilityReport"));
-adminRouter.use("/reporting/nars2023disrcl/:academic_year_id", routedTo(ReportingController, "runNars2023DisabilityRCLReport"));
+adminRouter.use("/reporting/nars2023dis", routedTo(ReportingController, "runNars2023DisabilityReport"));
+adminRouter.use("/reporting/nars2023disrcl", routedTo(ReportingController, "runNars2023DisabilityRCLReport"));
 
 adminRouter.use("/reporting/step/:academic_year_id", routedTo(ReportingController, "runStepReport"));
 adminRouter.use("/reporting/approvedFunding/:academic_year_id", routedTo(ReportingController, "runApprovedFundingReport"));
