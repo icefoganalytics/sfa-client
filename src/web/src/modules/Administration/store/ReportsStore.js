@@ -497,18 +497,8 @@ const state = {
     },
     {
       text: "NARS Disability FT & PT 2023",
-      url: "/nars2023dis/:academic_year_id",
+      url: "/nars2023dis",
       downloadFormat: [".csv", ".txt"],
-      parameters: [
-        {
-          name: "Academic year",
-          field: "academic_year_id",
-          options: "academicYears",
-          required: true,
-          itemText: "year",
-          itemValue: "year",
-        },
-      ],
       headers: [
         { text: "sin", value: "sin" },
         { text: "last_name", value: "last_name" },
@@ -540,17 +530,7 @@ const state = {
     },
     {
       text: "NARS Disability FT - Reduced Course Load 2023",
-      url: "/nars2023disrcl/:academic_year_id",
-      parameters: [
-        {
-          name: "Academic year",
-          field: "academic_year_id",
-          options: "academicYears",
-          required: true,
-          itemText: "year",
-          itemValue: "year",
-        },
-      ],
+      url: "/nars2023disrcl",
       downloadFormat: [".csv", ".txt"],
       headers: [
         { text: "loanyear", value: "loanyear" },

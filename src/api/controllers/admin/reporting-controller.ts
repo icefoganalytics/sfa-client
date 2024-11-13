@@ -239,8 +239,7 @@ export default class ReportingController extends BaseController {
   }
 
   async runNars2023DisabilityReport() {
-    let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
-    return ReportingService.runNars2023DisabilityReport({ format: this.format, academic_year_id }).then(
+    return ReportingService.runNars2023DisabilityReport({ format: this.format, academic_year_id: 2023 }).then(
       (reportData) => {
         if (this.format == "html") {
           this.response.send(reportData);
@@ -266,8 +265,7 @@ export default class ReportingController extends BaseController {
   }
 
   async runNars2023DisabilityRCLReport() {
-    let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
-    return ReportingService.runNars2023DisabilityRCLReport({ format: this.format, academic_year_id }).then(
+    return ReportingService.runNars2023DisabilityRCLReport({ format: this.format, academic_year_id: 2023 }).then(
       (reportData) => {
         if (this.format == "html") {
           this.response.send(reportData);
