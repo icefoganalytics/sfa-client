@@ -233,7 +233,7 @@ export default class ReportingService {
     let service = new NarsPTReportingService({
       startDate: new Date("2023-06-01"),
       endDate: new Date("2024-05-31"),
-      year: 2022,
+      year: 2023,
     });
 
     let results = await service.runReport();
