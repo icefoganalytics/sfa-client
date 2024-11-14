@@ -5,7 +5,7 @@ import knex from "knex";
 import { DocumentService, DocumentStatus, DocumentationService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { uniq, parseInt, min, get, isArray, isEmpty } from "lodash";
+import { uniq, parseInt, min, get, isArray, isEmpty, orderBy } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 import { weeksBetween } from "@/utils/date-utils";
 
@@ -86,44 +86,40 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
 applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Request, res: Response) => {
   try {
     const { filter } = req.query;
-    let applications;
+    let data = new Array();
 
-    if (!filter || filter == undefined) {
-      applications = await db("sfa.application")
-        .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-        .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-        .leftJoin("sfa.student", "student.id", "application.student_id")
-        .leftJoin("sfa.person", "student.person_id", "person.id")
-        .select("application.*")
-        .select("institution.name as institution_name")
-        .select("person.first_name")
-        .select("person.last_name")
-        .limit(150)
-        .where({ seen: true })
-        .whereNotNull("updated_at")
-        .orderBy("updated_at", "desc");
-    } else {
-      applications = await db("sfa.application")
-        .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-        .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-        .leftJoin("sfa.student", "student.id", "application.student_id")
-        .leftJoin("sfa.person", "student.person_id", "person.id")
-        .select("application.*")
-        .select("institution.name as institution_name")
-        .select("person.first_name")
-        .select("person.last_name")
-        .limit(150)
-        .whereRaw(`UPPER(last_name) like '[${filter}]%'`)
-        .andWhere({ seen: true })
-        .whereNotNull("updated_at")
-        .orderBy("updated_at", "desc");
+    const reviewDocsQuery = db("sfa.application")
+      .innerJoin("sfa.file_reference", "application.id", "file_reference.application_id")
+      .innerJoin("sfa.student", "student.id", "application.student_id")
+      .innerJoin("sfa.person", "student.person_id", "person.id")
+      .innerJoin("sfa.requirement_type", "file_reference.requirement_type_id", "requirement_type.id")
+      .select(
+        "application.id",
+        "person.first_name",
+        "person.last_name",
+        "requirement_type.description as requirement_name",
+        "application.academic_year_id",
+        "file_reference.status_date "
+      )
+      .where("file_reference.status", DocumentStatus.REVIEW)
+      .orderBy("status_date", "desc")
+      .limit(150);
+
+    if (filter) reviewDocsQuery.whereRaw(`UPPER(last_name) like '[${filter}]%'`);
+
+    const reviewDocs = await reviewDocsQuery;
+
+    for (let item of reviewDocs) {
+      data.push({
+        icon: "mdi-bookshelf",
+        url: `/application/${item.id}/documentation`,
+        title: `${item.first_name} ${item.last_name} - ${item.requirement_name}`,
+        subtitle: `${item.requirement_name}`,
+        updated_at: item.status_date,
+      });
     }
 
-    for (let item of applications) {
-      item.title = `${item.first_name} ${item.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
-    }
-
-    return res.json({ data: applications });
+    return res.json({ data });
   } catch (error) {
     console.log("/all-ERR: ", error);
     res.status(404).send(error);
@@ -624,6 +620,20 @@ applicationRouter.get(
     res.status(404).send();
   }
 );
+// downloads a document
+applicationRouter.get("/student/:student_id/files_id/:object_key", async (req: Request, res: Response) => {
+  const { student_id, object_key } = req.params;
+
+  let fileReference = await documentService.getDocumentWithFile(object_key);
+
+  if (fileReference && fileReference.student_id == parseInt(student_id)) {
+    res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+    res.set("Content-type", fileReference.mime_type);
+    return res.send(fileReference.file_contents);
+  }
+
+  res.status(404).send();
+});
 
 // downloads a document pdf
 applicationRouter.get(
@@ -659,6 +669,21 @@ applicationRouter.put("/:application_id/student/:student_id/files/:object_key", 
     fileReference.student_id == parseInt(student_id) &&
     fileReference.application_id == parseInt(application_id)
   ) {
+    await documentService.updateDocument(object_key, { upload_date, status, status_date, comment });
+    return res.json({ messages: [{ variant: "success", text: "Documentation Saved" }] });
+  }
+
+  res.status(404).send();
+});
+
+// updates a document
+applicationRouter.put("/student/:student_id/files/:object_key", async (req: Request, res: Response) => {
+  const { student_id, object_key } = req.params;
+  let { upload_date, status, status_date, comment } = req.body;
+
+  let fileReference = await documentService.getDocument(object_key);
+
+  if (fileReference && fileReference.student_id == parseInt(student_id)) {
     await documentService.updateDocument(object_key, { upload_date, status, status_date, comment });
     return res.json({ messages: [{ variant: "success", text: "Documentation Saved" }] });
   }
@@ -2011,7 +2036,10 @@ applicationRouter.get(
             );
 
             item.read_only_data = readOnlyData?.[0] || {};
-            item.read_only_data.assessed_weeks = weeksBetween(application.classes_start_date, application.classes_end_date);
+            item.read_only_data.assessed_weeks = weeksBetween(
+              application.classes_start_date,
+              application.classes_end_date
+            );
 
             const yea_balance = item.read_only_data.yea_earned - item.read_only_data.yea_used;
             const unused_receipts = min([

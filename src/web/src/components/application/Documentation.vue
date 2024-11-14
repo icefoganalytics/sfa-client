@@ -416,7 +416,7 @@ export default {
       let body = {
         upload_date: item.upload_date,
         status: item.status,
-        status_date: item.status_date,
+        status_date: new Date(),
         comment: item.comment,
       };
 

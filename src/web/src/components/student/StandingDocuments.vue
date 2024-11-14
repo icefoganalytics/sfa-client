@@ -124,13 +124,20 @@
     </v-card>
 
     <confirm-dialog ref="confirm"></confirm-dialog>
+    <pdf-preview-dialog ref="pdfPreview"></pdf-preview-dialog>
+    <pdf-preview-sidebar ref="pdfPreviewSide"></pdf-preview-sidebar>
   </div>
 </template>
 <script>
 import { mapActions, mapGetters, mapState } from "vuex";
+import axios from "axios";
 import store from "../../store";
+import { APPLICATION_URL } from "../../urls";
+import PdfPreviewDialog from "@/components/PDFPreviewDialog.vue";
+import PdfPreviewSidebar from "@/components/PDFPreviewSidebar.vue";
 
 export default {
+  components: { PdfPreviewDialog, PdfPreviewSidebar },
   data: () => ({
     showAdd: false,
   }),
@@ -166,23 +173,36 @@ export default {
       if (item.mime_type.startsWith("image/"))
         this.$refs.pdfPreviewSide.showImage(
           item.file_name,
-          `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`
+          `${APPLICATION_URL}/student/${this.student.id}/files_id/${item.object_key}`
         );
       else
         this.$refs.pdfPreviewSide.show(
           item.file_name,
-          `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`
+          `${APPLICATION_URL}/student/${this.student.id}/files_id/${item.object_key}`
         );
     },
 
     downloadItem(item) {
-      window.open(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`);
+      window.open(`${APPLICATION_URL}/student/${this.student.id}/files_id/${item.object_key}`);
     },
 
     downloadItemPdf(item) {
-      window.open(
-        `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id_pdf/${item.object_key_pdf}`
-      );
+      window.open(`${APPLICATION_URL}/student/${this.student.id}/files_id_pdf/${item.object_key_pdf}`);
+    },
+
+    updateDocumentation(item) {
+      let body = {
+        upload_date: item.upload_date,
+        status: item.status,
+        status_date: new Date(),
+        comment: item.comment,
+      };
+
+      axios.put(`${APPLICATION_URL}/student/${this.student.id}/files/${item.object_key}`, body).then((resp) => {
+        let message = resp.data.messages[0];
+        this.$emit("showSuccess", message.text);
+        this.loadStandingDocumentation();
+      });
     },
   },
 };

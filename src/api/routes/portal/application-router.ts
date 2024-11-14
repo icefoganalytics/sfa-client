@@ -159,8 +159,6 @@ portalApplicationRouter.post("/:sub/application/:applicationId/upload", async (r
     if (appIds.includes(parseInt(applicationId))) {
       let email = student.email;
 
-      console.log("req.files", req.files);
-
       if (req.files) {
         let file = isArray(req.files.file) ? req.files.file[0] : req.files.file;
         file.mimetype = mimetype;
