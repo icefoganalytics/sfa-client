@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { PortalApplicationService, PortalStudentService } from "../../services/portal";
 import StudentApplicationsService from "@/services/portal/students/student-applications-service";
-import { DocumentService, DocumentationService } from "../../services/shared";
+import { DocumentService, DocumentStatus, DocumentationService } from "../../services/shared";
 import { isArray } from "lodash";
 import { ReferenceService } from "@/services/portal/reference-service";
 
@@ -137,6 +137,48 @@ portalApplicationRouter.post("/:sub/:draftId/upload", async (req: Request, res: 
             await documentService.updateDocument(doc.object_key, { status: 4, status_date: new Date() });
           }
         }
+
+        return res.json({ message: "success" });
+      }
+    }
+  }
+
+  res.json({ error: "No files included in request" });
+});
+
+//uploads a document to an application
+portalApplicationRouter.post("/:sub/application/:applicationId/upload", async (req: Request, res: Response) => {
+  const { sub, applicationId } = req.params;
+  const { requirement_type_id, disability_requirement_id, person_id, dependent_id, mimetype, comment } = req.body;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let applications = await applicationService.getApplicationsForStudent(student.id);
+    let appIds = applications.map((a) => a.id);
+
+    if (appIds.includes(parseInt(applicationId))) {
+      let email = student.email;
+
+      console.log("req.files", req.files);
+
+      if (req.files) {
+        let file = isArray(req.files.file) ? req.files.file[0] : req.files.file;
+        file.mimetype = mimetype;
+
+        await documentService.uploadApplicationDocument({
+          email,
+          student_id: student.id,
+          application_id: parseInt(applicationId),
+          file,
+          requirement_type_id,
+          disability_requirement_id,
+          person_id,
+          dependent_id,
+          source: "Portal",
+          comment,
+          status: DocumentStatus.REVIEW,
+          visible_in_portal: true,
+        });
 
         return res.json({ message: "success" });
       }

@@ -349,6 +349,7 @@ export enum DocumentStatus {
   APPROVED = 2,
   REJECTED = 3,
   REPLACED = 4,
+  REVIEW = 5,
 }
 
 export enum DocumentSource {

@@ -148,4 +148,12 @@ export class ReferenceService {
       .where({ status: "Open", is_open_in_portal: true })
       .select(["id", "start_date", "end_date"]);
   }
+
+  async getRequirementTypes(): Promise<any[]> {
+    return db("requirement_type")
+      .withSchema(schema)
+      .where({ is_active: 1, show_online: 1 })
+      .select(["id", "description"])
+      .orderBy("description");
+  }
 }
