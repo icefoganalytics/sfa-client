@@ -131,7 +131,7 @@
             <!-- <h3 class="text-h6 font-weight-regular mb-0">New Applications</h3> -->
 
             <div v-if="loading">Loading...</div>
-            <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
+            <p v-if="newApplications.length == 0 && !loading" class="mb-0 mt-3">None yet</p>
 
             <v-list dense color="#ffffff00" v-if="newApplications">
               <div v-for="(item, idx) of newApplications">
@@ -156,14 +156,17 @@
             Recent Updates or Messages
           </v-toolbar>
           <v-card-text class="py-0 px-3">
-            <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
+            <p v-if="recentUpdated.length == 0" class="mb-0 mt-3">None yet</p>
 
             <v-list dense color="#ffffff00" v-if="recentUpdated">
               <div v-for="(item, idx) of recentUpdated">
-                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
+                <v-list-item :to="item.url" class="pl-1">
                   <v-list-item-content class="">
-                    <v-list-item-title>{{ idx + 1 }}. {{ item.title }} </v-list-item-title>
-                    <v-subheader class="my-0  ml-3">
+                    <v-list-item-title>
+                      <v-icon>{{ item.icon }}</v-icon>
+                      {{ item.title }}
+                    </v-list-item-title>
+                    <v-subheader class="my-0  ml-5">
                       <strong>Updated:</strong> {{ getFormattedDate(item.updated_at) }}
                     </v-subheader>
                   </v-list-item-content>
