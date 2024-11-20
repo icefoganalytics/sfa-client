@@ -309,8 +309,12 @@ export default {
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 
-    if (this.applicationId != storeApp.id) {
+    if (this.$route.path.indexOf("/application/") >= 0) {
       await store.dispatch("loadApplication", this.applicationId);
+    } else {
+      if (this.applicationId != storeApp.id) {
+        await store.dispatch("loadApplication", this.applicationId);
+      }
     }
 
     await this.loadDocuments();
