@@ -641,7 +641,7 @@ export class AssessmentCslftRepositoryV2 {
         })
         .first();
 
-      console.log("Using Yukon livingAllowance");
+      console.log("Using Yukon livingAllowance", this.application.category_id, yukonLivingAllowance);
       this.livingAllowance = yukonLivingAllowance;
     }
   }
