@@ -5,7 +5,7 @@ import knex from "knex";
 import { DocumentService, DocumentStatus, DocumentationService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { uniq, parseInt, min, get, isArray, isEmpty, orderBy } from "lodash";
+import { uniq, parseInt, min, get, isArray, isEmpty, orderBy, sortBy } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 import { weeksBetween } from "@/utils/date-utils";
 
@@ -102,7 +102,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         "file_reference.status_date "
       )
       .where("file_reference.status", DocumentStatus.REVIEW)
-      .orderBy("status_date", "desc")
+      .orderBy("status_date", "asc")
       .limit(150);
 
     if (filter) reviewDocsQuery.whereRaw(`UPPER(last_name) like '[${filter}]%'`);
@@ -118,6 +118,8 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         updated_at: item.status_date,
       });
     }
+
+    data = sortBy(data, "updated_at");
 
     return res.json({ data });
   } catch (error) {
