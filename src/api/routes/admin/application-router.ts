@@ -102,7 +102,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         "file_reference.status_date "
       )
       .where("file_reference.status", DocumentStatus.REVIEW)
-      .orderBy("status_date", "desc")
+      .orderBy("status_date", "asc")
       .limit(150);
 
     if (filter) reviewDocsQuery.whereRaw(`UPPER(last_name) like '[${filter}]%'`);
