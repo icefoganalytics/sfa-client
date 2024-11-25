@@ -109,6 +109,16 @@ export class AssessmentCslftRepositoryV2 {
         student_category_id: sdaCategory.id,
       })
       .first();
+
+    if (!this.sdaAllowance) {
+      this.sdaAllowance = await this.db("sfa.student_living_allowance")
+        .where({
+          academic_year_id: this.application.academic_year_id,
+          province_id: 3, // use Yukon
+          student_category_id: sdaCategory.id,
+        })
+        .first();
+    }
   }
 
   async create(
