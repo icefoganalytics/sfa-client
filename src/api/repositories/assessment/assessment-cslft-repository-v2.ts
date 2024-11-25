@@ -100,6 +100,16 @@ export class AssessmentCslftRepositoryV2 {
       })
       .first();
 
+    if (!this.dependentAllowance) {
+      this.dependentAllowance = await this.db("sfa.student_living_allowance")
+        .where({
+          academic_year_id: this.application.academic_year_id,
+          province_id: 3, // use Yukon
+          student_category_id: depCategory.id,
+        })
+        .first();
+    }
+
     let sdaCategory = this.studentCategories.find((c) => c.code == "SDA");
 
     this.sdaAllowance = await this.db("sfa.student_living_allowance")
