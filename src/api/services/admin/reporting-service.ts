@@ -75,7 +75,7 @@ export default class ReportingService {
         INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
         LEFT OUTER JOIN sfa.change_reason ON disbursement.change_reason_id = change_reason.id
       WHERE application.academic_year_id IN (${academic_year_id})
-        AND application.institution_campus_id IN (5326, 3488, 5648)
+        AND application.institution_campus_id IN (5326, 3488, 5648, 6316)
         AND disbursement.issue_date <= GETDATE()
         AND disbursement.due_date IS NULL
         AND funding_request.request_type_id = 1
