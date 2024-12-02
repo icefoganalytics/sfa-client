@@ -308,6 +308,9 @@ export default {
     this.loadRequirementTypes();
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
+    
+    await store.dispatch("clearApplication");
+    await store.dispatch("clearStudent");
 
     if (this.$route.path.indexOf("/application/") >= 0) {
       await store.dispatch("loadApplication", this.applicationId);

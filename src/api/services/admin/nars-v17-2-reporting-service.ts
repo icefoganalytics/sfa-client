@@ -70,7 +70,8 @@ export class NarsV17_2ReportingService {
       LEFT JOIN (SELECT SUM(COALESCE(paid_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement WHERE financial_batch_serial_no IS NOT NULL GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
-      funding_request.request_type_id = 4`);
+      funding_request.request_type_id = 4
+      and application.academic_year_id = ${this.year}`);
 
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
