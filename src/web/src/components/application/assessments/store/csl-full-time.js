@@ -247,7 +247,6 @@ const actions = {
     });
   },
   async recordOveraward({ state }) {
-    console.log("RECORDing OVERAWRD");
     let url = `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}/record-overaward`;
 
     return axios.post(url).then(async (resp) => {
