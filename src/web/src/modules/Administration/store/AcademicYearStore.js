@@ -6,6 +6,7 @@ import { clone, isArray, isEmpty } from "lodash";
 const state = {
   academicYears: [],
   academicYear: null,
+  currentAcademicYear: null,
 };
 
 const mutations = {
@@ -18,6 +19,10 @@ const mutations = {
     }
 
     state.academicYears = value;
+
+    state.currentAcademicYear = state.academicYears.find((y) => {
+      return moment().isBetween(moment.utc(y.start_date), moment.utc(y.end_date));
+    }).id;
   },
   SET_ACADEMICYEAR(state, value) {
     state.academicYear = value;
