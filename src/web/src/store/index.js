@@ -102,6 +102,7 @@ import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
 import router from "@/router";
 import { isEmpty, isUndefined } from "lodash";
+import overawardStore from "./overawardStore";
 
 Vue.use(Vuex);
 
@@ -645,5 +646,6 @@ export default new Vuex.Store({
     academicYearStore,
 
     communicationStore,
+    overawardStore,
   },
 });

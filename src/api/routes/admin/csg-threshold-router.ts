@@ -200,7 +200,20 @@ csgThresholdRouter.post(
     let existingOveraward = student.pre_over_award_amount ?? 0;
     existingOveraward += Math.abs(loaded.net_amount);
 
-    await db("sfa.student").where({ id: application.student_id }).update({ pre_over_award_amount: existingOveraward });
+    const amount = Math.round(loaded.net_amount * 100) / 100;
+
+    await db("sfa.overaward").insert({
+      student_id: student.id,
+      academic_year_id: application.academic_year_id,
+      application_id: fundingRequest.application_id,
+      funding_request_id,
+      assessment_id,
+      created_by: req.user.email,
+      note: "Created from overaward in CLSFT Assessment",
+      amount,
+    });
+
+    //await db("sfa.student").where({ id: application.student_id }).update({ pre_over_award_amount: existingOveraward });
 
     //await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
     return res.status(200).json({ data: "Assessment Saved" });

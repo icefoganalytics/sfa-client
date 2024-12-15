@@ -78,6 +78,7 @@ import ReportingController from "@/controllers/admin/reporting-controller";
 import { csgThresholdRouter } from "./csg-threshold-router";
 import { yeaImportRouter } from "./yea-import-router";
 import { catalogRouter } from "./catalog/catalog-router";
+import { overawardRouter } from "./overaward-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -164,17 +165,28 @@ adminRouter.use("/csl-certificate-audit-report", cslCertificateAuditReportRouter
 adminRouter.use("/csl-msfaa-send", cslMsfaaSendRouter);
 adminRouter.use("/csl-restricted-data", cslRestrictedData);
 
+adminRouter.use("/overaward", overawardRouter);
+
 adminRouter.use("/reporting", pathFormatMiddleware);
 adminRouter.use("/reporting/fundingStatus/:years", routedTo(ReportingController, "runFundingStatusReport"));
-adminRouter.use("/reporting/staYukonUniversity/:academic_year_id", routedTo(ReportingController, "runSTAYukonUniversityReport"));
+adminRouter.use(
+  "/reporting/staYukonUniversity/:academic_year_id",
+  routedTo(ReportingController, "runSTAYukonUniversityReport")
+);
 adminRouter.use(
   "/reporting/scholarshipQualified/:academic_year_id",
   routedTo(ReportingController, "runScholarshipReport")
 );
 adminRouter.use("/reporting/nars2022", routedTo(ReportingController, "runNars2022FTReport"));
 adminRouter.use("/reporting/nars2022pt", routedTo(ReportingController, "runNars2022PTReport"));
-adminRouter.use("/reporting/nars2022dis/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityReport"));
-adminRouter.use("/reporting/nars2022disrcl/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityRCLReport"));
+adminRouter.use(
+  "/reporting/nars2022dis/:academic_year_id",
+  routedTo(ReportingController, "runNars2022DisabilityReport")
+);
+adminRouter.use(
+  "/reporting/nars2022disrcl/:academic_year_id",
+  routedTo(ReportingController, "runNars2022DisabilityRCLReport")
+);
 
 adminRouter.use("/reporting/nars2023", routedTo(ReportingController, "runNars2023FTReport"));
 adminRouter.use("/reporting/nars2023pt", routedTo(ReportingController, "runNars2023PTReport"));
@@ -182,7 +194,10 @@ adminRouter.use("/reporting/nars2023dis", routedTo(ReportingController, "runNars
 adminRouter.use("/reporting/nars2023disrcl", routedTo(ReportingController, "runNars2023DisabilityRCLReport"));
 
 adminRouter.use("/reporting/step/:academic_year_id", routedTo(ReportingController, "runStepReport"));
-adminRouter.use("/reporting/approvedFunding/:academic_year_id", routedTo(ReportingController, "runApprovedFundingReport"));
+adminRouter.use(
+  "/reporting/approvedFunding/:academic_year_id",
+  routedTo(ReportingController, "runApprovedFundingReport")
+);
 adminRouter.use("/reporting/t4a/:tax_year", routedTo(ReportingController, "runT4AReport"));
 adminRouter.use("/reporting/vendor-update", routedTo(ReportingController, "runVendorUpdateReport"));
 

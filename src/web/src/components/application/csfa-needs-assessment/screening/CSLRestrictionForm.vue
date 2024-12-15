@@ -102,12 +102,7 @@
                     check_completion_menu = false;
                   }
                 "
-                @change="
-                  doSaveApp(
-                    'csl_clearance_date',
-                    application.csl_clearance_date
-                  )
-                "
+                @change="doSaveApp('csl_clearance_date', application.csl_clearance_date)"
               ></v-date-picker>
             </v-menu>
           </div>
@@ -124,16 +119,11 @@
                   application.csl_restriction_comment = e;
                 }
               "
-              @change="
-                doSaveApp(
-                  'csl_restriction_comment',
-                  application.csl_restriction_comment
-                )
-              "
+              @change="doSaveApp('csl_restriction_comment', application.csl_restriction_comment)"
             ></v-textarea>
           </div>
 
-          <div class="col-md-6">
+          <!-- <div class="col-md-6">
             <v-text-field
               outlined
               dense
@@ -151,7 +141,7 @@
               "
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
-          </div>
+          </div> -->
 
           <div class="col-md-12">
             <hr />
@@ -173,12 +163,7 @@
               v-model="warningOptions"
               @change="
                 () => {
-                  doSaveStudent(
-                    'csl_warn_code',
-                    student.csl_warn_code,
-                    'studentInfo',
-                    student.id
-                  );
+                  doSaveStudent('csl_warn_code', student.csl_warn_code, 'studentInfo', student.id);
                 }
               "
             ></v-select>
@@ -215,14 +200,7 @@
                     scholastic_letter_menu = false;
                   }
                 "
-                @change="
-                  doSaveStudent(
-                    'csl_letter_date',
-                    student.csl_letter_date,
-                    'studentInfo',
-                    student.id
-                  )
-                "
+                @change="doSaveStudent('csl_letter_date', student.csl_letter_date, 'studentInfo', student.id)"
               ></v-date-picker>
             </v-menu>
           </div>
@@ -334,16 +312,9 @@ export default {
   },
   methods: {
     doSaveStudent(field, value, type, extraId = null, addressType = "") {
-      store.dispatch("updateStudent", [
-        field,
-        value,
-        type,
-        extraId,
-        this,
-        addressType,
-      ]);
+      store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
     },
-    concatenateText(item) {      
+    concatenateText(item) {
       return this.cslCodes.id + " - " + this.cslCodes.definition;
     },
     doSaveApp(field, value) {
