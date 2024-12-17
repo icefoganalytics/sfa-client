@@ -169,7 +169,7 @@
           </v-col>
           <v-col cols="12" md="3">
             <v-text-field
-              label="Outstanding overaward"
+              label="Overaward applied"
               readonly
               outlined
               dense
@@ -288,6 +288,17 @@
             <v-btn color="primary" class="ml-3" @click="disburseClick">Disburse</v-btn>
           </v-col>
         </v-row>
+
+        <v-alert v-if="assessment.net_overaward < 0" class="mt-4" dense type="warning"
+          >This student has an outstanding overaward balance.</v-alert
+        >
+
+        <v-alert v-if="assessment.has_overaward_applied" class="mt-4" dense type="warning">
+          This assessment has an overward applied.
+        </v-alert>
+        <v-alert v-if="assessment.has_overaward_recorded" class="mt-4" dense type="warning">
+          This assessment has an overward recorded.
+        </v-alert>
       </div>
       <v-divider class="my-5" />
       <cslft-disbursements v-on:showError="showError" v-on:showSuccess="showSuccess"></cslft-disbursements>

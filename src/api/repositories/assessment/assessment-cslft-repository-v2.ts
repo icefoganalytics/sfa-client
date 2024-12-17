@@ -138,6 +138,9 @@ export class AssessmentCslftRepositoryV2 {
     await this.load(parseInt(`${fundingRequestId}`));
 
     let assess = await this.calculateBase();
+
+    const existingOA = await this.db("sfa.assessment").where({ id: assessmentId }).select("over_award").first();
+    if (existingOA) assess.over_award = existingOA.over_award;
     assess.id = parseInt(`${assessmentId}`);
 
     await this.calculateCosts(assess);
@@ -145,7 +148,6 @@ export class AssessmentCslftRepositoryV2 {
     await this.calculateParental(assess);
 
     let full = await this.postLoad(assess, this.application.id);
-
     assess.csl_assessed_need = full.csl_assessed_need;
 
     await this.calculateAward(assess);
@@ -471,13 +473,18 @@ export class AssessmentCslftRepositoryV2 {
       "disbursed_amount"
     );
 
+    const studentOverawards = await this.db("sfa.overaward").where({ student_id: this.student.id });
+    const assessmentOverawards = studentOverawards.filter((o) => input.id == o.assessment_id);
+
+    input.net_overaward = sumBy(studentOverawards, "amount");
+    input.has_overaward_recorded = assessmentOverawards.find((o) => o.amount < 0) != null;
+    input.has_overaward_applied = assessmentOverawards.find((o) => o.amount > 0) != null;
     //over_award can only be as big as the calculated = clear partial
 
+    console.log("DOING MATH", input.over_award, input.assessed_amount);
+
     input.net_amount =
-      input.assessed_amount /* -
-      (input.over_award ?? 0) */ -
-      input.previous_cert -
-      input.previous_disbursement /* -
+      input.assessed_amount /* - (input.over_award ?? 0) */ - input.previous_cert - input.previous_disbursement /* -
       (input.return_uncashable_cert ?? 0) */;
 
     input.net_amount = Math.round(input.net_amount * 100) / 100;
@@ -538,7 +545,10 @@ export class AssessmentCslftRepositoryV2 {
     );
     const calculated_award: number = Math.max(0, Math.round(calculated_award_min));
 
+    console.log("DOING MATH 2", assess.over_award);
+
     if (assess.csl_full_amt_flag == 0) {
+      console.log("M1");
       assess.assessed_amount = Math.max(
         Math.min(calculated_award, assess.csl_request_amount ?? 0) -
           (assess.over_award ?? 0) -
@@ -546,6 +556,7 @@ export class AssessmentCslftRepositoryV2 {
         0
       );
     } else {
+      console.log("M2");
       assess.assessed_amount =
         Math.max((calculated_award ?? 0) - (assess.over_award ?? 0), 0) - (assess.return_uncashable_cert ?? 0);
     }
@@ -956,7 +967,7 @@ export class AssessmentCslftRepositoryV2 {
         (this.cslLookup.low_income_student_contrib_amount ?? 0) / e_month +
         ((family_income - income_threshold) / e_month) * ((this.cslLookup.student_contrib_percent ?? 0) / 100);
 
-      const weekly_calc = weekly_student_contrib * Math.min(assess.study_weeks ?? 0, max_weeks) ?? 0;
+      const weekly_calc = weekly_student_contrib * Math.min(assess.study_weeks ?? 0, max_weeks);
       assess.student_expected_contribution = Math.min(weekly_calc, this.cslLookup.student_contrib_max_amount ?? 0);
 
       assess.student_expected_contribution = Math.max(
@@ -1041,14 +1052,14 @@ export class AssessmentCslftRepositoryV2 {
     let ftGrant = this.otherFunds.find((f) => f.request_type_id == 35);
     let ftDepGrant = this.otherFunds.find((f) => f.request_type_id == 32);
     let disGrant = this.otherFunds.find((f) => f.request_type_id == 29);
-    let disSEGrant = this.otherFunds.find((f) => f.request_type_id == 30);
+    //let disSEGrant = this.otherFunds.find((f) => f.request_type_id == 30);
     let topup = this.otherFunds.find((f) => f.request_type_id == 28);
 
     let totalGrants =
       (ftGrant?.disbursed_amount ?? 0) +
       (ftDepGrant?.disbursed_amount ?? 0) +
       (disGrant?.disbursed_amount ?? 0) +
-      (disSEGrant?.disbursed_amount ?? 0) +
+      //(disSEGrant?.disbursed_amount ?? 0) +
       (topup?.disbursed_amount ?? 0);
 
     assess.total_grant_awarded = totalGrants;
@@ -1060,7 +1071,15 @@ export class AssessmentCslftRepositoryV2 {
     const calculated_award_min = Math.min(sixty - (assess.total_grant_awarded ?? 0), max_allowable ?? 0);
     const calculated_award: number = Math.max(0, Math.round(calculated_award_min));
 
-    assess.over_award = this.student.pre_over_award_amount ?? 0;
+    /* const totalOveraward = await this.db("sfa.overaward").where({
+      student_id: this.application.student_id,
+    }).sum("amount as total").first();
+
+    console.log("Total Overaward", totalOveraward?.total); */
+
+    //assess.over_award = assess.over_award ?? 0; // totalOveraward?.total ?? 0;
+
+    console.log("Setting Overaward", assess.over_award);
 
     // Calculate the totaln_disbursments_required
     if (assess.csl_full_amt_flag == 0) {
@@ -1461,4 +1480,8 @@ interface CSLFTAssessmentFull extends CSLFTAssessmentBase {
   student_other_resources: number;
   student_contrib_exempt_reason?: string;
   spouse_contrib_exempt_reason?: string;
+
+  net_overaward: number;
+  has_overaward_recorded: boolean;
+  has_overaward_applied: boolean;
 }

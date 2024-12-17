@@ -238,19 +238,25 @@ const actions = {
     });
   },
 
-  async clearOveraward() {
+  async clearOveraward({ dispatch }) {
     console.log("CLEARING OVERAWRD");
     let url = `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}/clear-overaward`;
 
     return axios.post(url).then(async (resp) => {
-      console.log("RESP", resp);
+      dispatch("loadCSLFTAssessment", {
+        applicationId: state.fundingRequest.application_id,
+        assessmentId: state.assessment.id,
+      });
     });
   },
-  async recordOveraward({ state }) {
+  async recordOveraward({ dispatch, state }) {
     let url = `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}/record-overaward`;
 
     return axios.post(url).then(async (resp) => {
-      console.log("RESP", resp);
+      dispatch("loadCSLFTAssessment", {
+        applicationId: state.fundingRequest.application_id,
+        assessmentId: state.assessment.id,
+      });
     });
   },
   async deleteAssessment() {
