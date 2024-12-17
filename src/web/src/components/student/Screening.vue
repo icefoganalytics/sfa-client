@@ -84,8 +84,7 @@
               <v-textarea v-model="selectedOveraward.note" label="Note" dense outlined />
               <v-text-field
                 v-if="selectedOveraward.id"
-                v-model="selectedOveraward.created_by"
-                v-currency
+                :value="selectedOveraward.created_by"
                 label="Created by"
                 readonly
                 append-icon="mdi-lock"

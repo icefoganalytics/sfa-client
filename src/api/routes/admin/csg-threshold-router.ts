@@ -46,19 +46,23 @@ csgThresholdRouter.delete(
   async (req: Request, res: Response) => {
     const { assessment_id, funding_request_id } = req.params;
 
-    let disbursements = await db("sfa.disbursement").where({ assessment_id });
+    try {
+      let disbursements = await db("sfa.disbursement").where({ assessment_id });
 
-    if (disbursements) {
-      let eCertDisbursements = disbursements.filter((d) => d.csl_cert_seq_number);
+      if (disbursements) {
+        let eCertDisbursements = disbursements.filter((d) => d.csl_cert_seq_number);
 
-      if (eCertDisbursements.length)
-        return res.status(400).json({ errors: ["Cannot delete an assessment with eCert disbursements"] });
+        if (eCertDisbursements.length)
+          return res.status(400).json({ errors: ["Cannot delete an assessment with eCert disbursements"] });
 
-      await db("sfa.disbursement").where({ assessment_id }).delete();
+        await db("sfa.disbursement").where({ assessment_id }).delete();
+      }
+
+      await db("sfa.assessment").where({ id: assessment_id }).delete();
+      return res.status(200).json({ data: "Assessment Deleted" });
+    } catch (e) {
+      res.status(400).json({ error: "Error deleting assessment - most likely due to applied overawards" });
     }
-
-    await db("sfa.assessment").where({ id: assessment_id }).delete();
-    return res.status(200).json({ data: "Assessment Deleted" });
   }
 );
 
@@ -73,7 +77,6 @@ csgThresholdRouter.put(
       assessed_date,
       csl_over_reason_id,
       csl_non_reason_id,
-      over_award,
       return_uncashable_cert,
       student_contribution_override,
       spouse_contribution_override,
@@ -108,7 +111,6 @@ csgThresholdRouter.put(
       csl_non_reason_id,
       csl_over_reason_id,
       return_uncashable_cert: cleanNumberOptional(return_uncashable_cert),
-      over_award: cleanNumberOptional(over_award),
       student_contribution_override: cleanNumberOptional(student_contribution_override),
       spouse_contribution_override: cleanNumberOptional(spouse_contribution_override),
       parent_contribution_override: cleanNumberOptional(parent_contribution_override),
@@ -136,7 +138,6 @@ csgThresholdRouter.put(
         assessed_amount: calced.assessed_amount,
         csl_assessed_need: calced.csl_assessed_need,
         return_uncashable_cert: cleanNumberOptional(return_uncashable_cert),
-        over_award: cleanNumberOptional(over_award),
         student_contribution_override: cleanNumberOptional(student_contribution_override),
         spouse_contribution_override: cleanNumberOptional(spouse_contribution_override),
         parent_contribution_override: cleanNumberOptional(parent_contribution_override),
@@ -164,7 +165,6 @@ csgThresholdRouter.put(
       (recalc as any).student_contribution_override = null;
       (recalc as any).spouse_contribution_override = null;
       (recalc as any).parent_contribution_override = null;
-      (recalc as any).over_award = null;
       (recalc as any).return_uncashable_cert = null;
       (recalc as any).csl_non_reason_id = null;
       (recalc as any).csl_over_reason_id = null;
@@ -197,9 +197,6 @@ csgThresholdRouter.post(
 
     if (!loaded) return res.status(500).send("Error loading assessment");
 
-    let existingOveraward = student.pre_over_award_amount ?? 0;
-    existingOveraward += Math.abs(loaded.net_amount);
-
     const amount = Math.round(loaded.net_amount * 100) / 100;
 
     await db("sfa.overaward").insert({
@@ -212,8 +209,6 @@ csgThresholdRouter.post(
       note: "Created from overaward in CLSFT Assessment",
       amount,
     });
-
-    //await db("sfa.student").where({ id: application.student_id }).update({ pre_over_award_amount: existingOveraward });
 
     //await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
     return res.status(200).json({ data: "Assessment Saved" });
@@ -238,10 +233,38 @@ csgThresholdRouter.post(
 
     if (!loaded) return res.status(500).send("Error loading assessment");
 
-    let existingOveraward = student.pre_over_award_amount ?? 0;
-    existingOveraward -= Math.abs(loaded.net_amount);
+    if (loaded.net_overaward < 0 && loaded.net_amount > 0) {
+      const toClear = Math.min(loaded.net_amount, Math.abs(loaded.net_overaward));
 
-    await db("sfa.student").where({ id: application.student_id }).update({ pre_over_award_amount: existingOveraward });
+      await db("sfa.overaward").insert({
+        student_id: student.id,
+        academic_year_id: application.academic_year_id,
+        application_id: fundingRequest.application_id,
+        funding_request_id,
+        assessment_id,
+        created_by: req.user.email,
+        note: "Created from overaward in CLSFT Assessment",
+        amount: toClear,
+      });
+
+      await db("sfa.assessment").where({ id: assessment_id }).update({
+        over_award: toClear,
+        over_award_applied_flg: "Yes",
+      });
+
+      let recalc = await repo.create(funding_request_id, assessment_id);
+
+      delete (recalc as any).id;
+      delete (recalc as any).assessment_type_id;
+      (recalc as any).student_contribution_override = null;
+      (recalc as any).spouse_contribution_override = null;
+      (recalc as any).parent_contribution_override = null;
+      (recalc as any).return_uncashable_cert = null;
+      (recalc as any).csl_non_reason_id = null;
+      (recalc as any).csl_over_reason_id = null;
+
+      await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
+    }
 
     return res.status(200).json({ data: "Assessment Saved" });
   }

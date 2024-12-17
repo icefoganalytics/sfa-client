@@ -12,9 +12,9 @@
             <v-chip class="my-0 ml-3 text-regular" color="brown lighten-4" style="font-weight: 400"
               >Total Awarded: {{ totalAwarded }}</v-chip
             >
-            <v-chip class="my-0 ml-3" color="indigo lighten-4" style="font-weight: 400"
+            <!-- <v-chip class="my-0 ml-3" color="indigo lighten-4" style="font-weight: 400"
               >{{ percentAwarded }} of Need</v-chip
-            >
+            > -->
             <v-chip
               class="my-0 ml-3"
               :color="msfaa?.msfaa_status == 'Received' ? 'green lighten-3' : 'orange lighten-4'"
@@ -51,9 +51,9 @@
                 <v-list-item-icon><v-icon>mdi-pin-outline</v-icon></v-list-item-icon>
                 <v-list-item-title>Record Overaward</v-list-item-title>
               </v-list-item>
-              <v-list-item v-if="canClearOveraward" @click="clearOverawardClick">
+              <v-list-item v-if="canApplyOveraward" @click="applyOverawardClick">
                 <v-list-item-icon><v-icon>mdi-eraser</v-icon></v-list-item-icon>
-                <v-list-item-title>Clear Student Overaward</v-list-item-title>
+                <v-list-item-title>Apply Student Overaward</v-list-item-title>
               </v-list-item>
               <v-list-item v-if="canDelete" @click="deleteClick">
                 <v-list-item-icon><v-icon>mdi-trash-can-outline</v-icon></v-list-item-icon>
@@ -76,7 +76,7 @@
             >CSG-PTDEP<br />
             {{ formatMoney(depAmount) }}</v-tab
           > -->
-          <v-tab key="3">Award<br />{{ formatMoney(assessment.net_amount) }}</v-tab>
+          <v-tab key="3">Award<br />{{ formatMoney(assessment.assessed_amount) }}</v-tab>
           <v-tab key="4">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
@@ -188,10 +188,11 @@ export default {
     ...mapState("cslFullTimeStore", ["isLoading", "assessment", "fundingRequest", "disbursements", "msfaa"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
     totalAwarded() {
-      return this.formatMoney(this.assessment.net_amount);
+      // this should be a sum of all disbursements amounts for all assessments
+      return this.formatMoney(this.assessment.assessed_amount);
     },
     percentAwarded() {
-      return `${Math.round((100 * this.assessment.net_amount) / this.assessment.total_costs)}%`;
+      return `${Math.round((100 * this.assessment.assessed_amount) / this.assessment.total_costs)}%`;
     },
     assessmentItems() {
       if (this.fundingRequest) {
@@ -237,11 +238,21 @@ export default {
     canAddAssessment() {
       return this.canSave && this.disbursements.length > 0;
     },
-    canClearOveraward() {
-      return this.assessment.over_award && this.assessment.over_award > 0;
+    canApplyOveraward() {
+      return (
+        this.assessment.id &&
+        this.canSave &&
+        this.assessment.net_amount > 0 &&
+        !(this.assessment.has_overaward_applied || this.assessment.has_overaward_recorded)
+      );
     },
     canRecordOveraward() {
-      return this.canSave && this.assessment.net_amount < 0 && (this.student.pre_over_award_amount ?? 0) < 1;
+      return (
+        this.assessment.id &&
+        this.canSave &&
+        this.assessment.net_amount < 0 &&
+        !(this.assessment.has_overaward_applied || this.assessment.has_overaward_recorded)
+      );
     },
     canDelete() {
       return this.disbursements.length == 0;
@@ -304,16 +315,23 @@ export default {
     async addAssessmentClick() {
       await this.createAssessment();
     },
-    async clearOverawardClick() {
+    async applyOverawardClick() {
       await this.clearOveraward();
     },
     async recordOverawardClick() {
-      await this.recordOveraward();
+      await this.recordOveraward().then(() => {
+        this.showSuccess("Overaward recorded");
+      });
     },
     async deleteClick() {
-      await this.deleteAssessment().then((resp) => {
-        this.$router.push(`/application/${this.application.id}/cslft/${this.fundingRequest.id}`);
-      });
+      await this.deleteAssessment()
+        .then((resp) => {
+          this.$router.push(`/application/${this.application.id}/cslft/${this.fundingRequest.id}`);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.showError(err.response.data.error);
+        });
     },
   },
 };
