@@ -271,6 +271,50 @@ csgThresholdRouter.post(
 );
 
 csgThresholdRouter.post(
+  "/funding-request/:funding_request_id/assessment/:assessment_id/unapply-overaward",
+  param("assessment_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { assessment_id, funding_request_id } = req.params;
+
+    let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
+    let application = await db("sfa.application").where({ id: fundingRequest.application_id }).first();
+    let assessment = await db("sfa.assessment").where({ id: assessment_id }).first();
+
+    let repo = new AssessmentCslftRepositoryV2(db);
+    let loaded = await repo.loadExisting(assessment, fundingRequest.application_id);
+    if (!loaded) return res.status(500).send("Error loading assessment");
+
+    await db("sfa.overaward")
+      .where({
+        assessment_id,
+      })
+      .delete();
+
+    await db("sfa.assessment").where({ id: assessment_id }).update({
+      over_award: null,
+      over_award_applied_flg: null,
+    });
+
+    let recalc = await repo.create(funding_request_id, assessment_id);
+
+    delete (recalc as any).id;
+    delete (recalc as any).assessment_type_id;
+    (recalc as any).student_contribution_override = null;
+    (recalc as any).spouse_contribution_override = null;
+    (recalc as any).parent_contribution_override = null;
+    (recalc as any).return_uncashable_cert = null;
+    (recalc as any).csl_non_reason_id = null;
+    (recalc as any).csl_over_reason_id = null;
+
+    await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
+
+    return res.status(200).json({ data: "Assessment Saved" });
+  }
+);
+
+csgThresholdRouter.post(
   "/cslft/:application_id/funding-request/:funding_request_id/assessment",
   param("application_id").isInt(),
   param("funding_request_id").isInt(),

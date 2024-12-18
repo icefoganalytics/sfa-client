@@ -51,9 +51,13 @@
                 <v-list-item-icon><v-icon>mdi-pin-outline</v-icon></v-list-item-icon>
                 <v-list-item-title>Record Overaward</v-list-item-title>
               </v-list-item>
+              <v-list-item v-if="canUnapplyOveraward" @click="unapplyOverawardClick">
+                <v-list-item-icon><v-icon>mdi-pin-outline</v-icon></v-list-item-icon>
+                <v-list-item-title>Remove Applied Overaward</v-list-item-title>
+              </v-list-item>
               <v-list-item v-if="canApplyOveraward" @click="applyOverawardClick">
                 <v-list-item-icon><v-icon>mdi-eraser</v-icon></v-list-item-icon>
-                <v-list-item-title>Apply Student Overaward</v-list-item-title>
+                <v-list-item-title>Apply Existing Overaward</v-list-item-title>
               </v-list-item>
               <v-list-item v-if="canDelete" @click="deleteClick">
                 <v-list-item-icon><v-icon>mdi-trash-can-outline</v-icon></v-list-item-icon>
@@ -254,6 +258,9 @@ export default {
         !(this.assessment.has_overaward_applied || this.assessment.has_overaward_recorded)
       );
     },
+    canUnapplyOveraward() {
+      return this.assessment.id && this.canSave && this.assessment.has_overaward_applied;
+    },
     canDelete() {
       return this.disbursements.length == 0;
     },
@@ -267,6 +274,7 @@ export default {
       "clearOveraward",
       "recordOveraward",
       "deleteAssessment",
+      "unApplyOveraward",
     ]),
     ...mapActions([
       "setCslClassifications",
@@ -321,6 +329,11 @@ export default {
     async recordOverawardClick() {
       await this.recordOveraward().then(() => {
         this.showSuccess("Overaward recorded");
+      });
+    },
+    async unapplyOverawardClick() {
+      await this.unApplyOveraward().then(() => {
+        this.showSuccess("Overaward removed");
       });
     },
     async deleteClick() {
