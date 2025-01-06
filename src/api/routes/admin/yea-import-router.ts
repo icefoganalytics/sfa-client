@@ -45,7 +45,7 @@ yeaImportRouter.post("/", async (req: Request, res: Response) => {
 
 function parseFile(file: UploadedFile) {
   let string = file.data.toString();
-  let lines = string.split(/\r?\n/);
+  let lines = string.replace(/\n+$/, "").split(/\r?\n/);
   let output = new Array<any>();
 
   if (lines.length == 0) return { error: "File has no lines" };
