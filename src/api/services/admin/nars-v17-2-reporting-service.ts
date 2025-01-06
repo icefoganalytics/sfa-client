@@ -106,6 +106,8 @@ export class NarsV17_2ReportingService {
         ? "2"
         : [5, 8].includes(app.aboriginal_status_id)
         ? "1"
+        : [4].includes(app.aboriginal_status_id)
+        ? "0"
         : ".";
 
     let res_postal = "";
