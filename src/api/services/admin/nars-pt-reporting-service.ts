@@ -49,6 +49,7 @@ export class NarsPTReportingService {
     application.academic_year_id, COALESCE(institution.federal_institution_code, institution_campus.federal_institution_code ) institution_code , application.aboriginal_status_id,  
     application.category_id, application.primary_address_id, application.parent1_net_income,
      application.parent2_net_income,  application.spouse_study_school_from, application.spouse_study_school_to,
+     application.courses_per_week, application.spouse_ln150_income
     application.is_spouse_study_csl, application.spouse_study_emp_status_id, application.is_minority, application.is_disabled,
     application.program_year_total, application.program_year,  application.prestudy_city_id, application.study_city_id, application.is_perm_disabled, 
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
@@ -236,9 +237,9 @@ export class NarsPTReportingService {
 
     row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, "0", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
-    row.push(new Column("spouse_gross_annual_inc", app.spouse_gross_income ?? "", "0", 6));
+    row.push(new Column("spouse_gross_annual_inc", app.spouse_ln150_income ?? "", "0", 6));
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
-    row.push(new Column("family_income", app.student_ln150_income + app.spouse_gross_income, "0", 6)); // always blank
+    row.push(new Column("family_income", app.student_ln150_income + app.spouse_ln150_income, "0", 6)); // always blank
 
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 5));
     row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 5));

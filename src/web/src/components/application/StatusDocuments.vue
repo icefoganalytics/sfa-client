@@ -88,6 +88,7 @@
         </div>
       </v-list>
     </v-card>
+    <pdf-preview-sidebar ref="pdfPreviewSide"></pdf-preview-sidebar>
   </v-menu>
 </template>
 
@@ -95,6 +96,7 @@
 import axios from "axios";
 import moment from "moment";
 import { APPLICATION_URL, FUNDING_REQUESTS_URL } from "../../urls";
+import PdfPreviewSidebar from "@/components/PDFPreviewSidebar.vue";
 
 export default {
   props: ["item", "type"],
@@ -153,7 +155,13 @@ export default {
       }
     },
 
-    previewLetterClick(letter) {},
+    previewLetterClick(letter) {
+      
+      this.$refs.pdfPreviewSide.show(
+          item.file_name,
+          `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`
+        );
+    },
     downloadLetterClick(letter) {
       let documentUrl = `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`;
       window.open(documentUrl);
