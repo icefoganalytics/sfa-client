@@ -51,7 +51,8 @@ export class NarsV17_2ReportingService {
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
-    funding_request.is_csg_only, funding_request.is_csl_full_amount, funding_request.csl_request_amount    
+    funding_request.is_csg_only, funding_request.is_csl_full_amount, 
+    CAST( funding_request.csl_request_amount AS INT) csl_request_amount    
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
       INNER JOIN sfa.application ON (student.id = application.student_id)
@@ -238,7 +239,7 @@ export class NarsV17_2ReportingService {
     let tot_ass_res = app.student_expected_contribution ?? 0;
 
     if (app.is_csg_only) req_need = 0;
-    else if (app.is_csl_full_amount) req_need = app.study_weeks * 210;
+    else if (app.is_csl_full_amount) req_need = app.study_weeks * 300; // should be 300 for 2023
 
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
