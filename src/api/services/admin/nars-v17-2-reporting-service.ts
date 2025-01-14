@@ -233,7 +233,7 @@ export class NarsV17_2ReportingService {
       (app.depend_food_allowable + app.depend_tran_allowable) * app.study_months + app.discretionary_cost_actual;
 
     totalCosts += stud_sp_cost_other;
-    stud_sp_cost_other -= stud_sp_cost_computers;
+    //stud_sp_cost_other -= stud_sp_cost_computers; this is causing costs to be negative. Other doesn't include computers, so not sure why it's being removed
 
     let req_need = app.csl_request_amount;
     let tot_ass_res = app.student_expected_contribution ?? 0;
