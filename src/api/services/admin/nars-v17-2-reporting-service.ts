@@ -52,8 +52,7 @@ export class NarsV17_2ReportingService {
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
-    funding_request.is_csg_only, funding_request.is_csl_full_amount, 
-    CAST(funding_request.csl_request_amount AS INT) csl_request_amount
+    funding_request.is_csg_only, funding_request.is_csl_full_amount
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
       INNER JOIN sfa.application ON (student.id = application.student_id)
