@@ -44,20 +44,17 @@ export class NarsPTReportingService {
     person_address.postal_code as primary_postal_code,
     field_program.field_program_code,
     funding_request.status_id AS funding_request_status_id,
-    
     student.indigenous_learner_id, student.high_school_left_year, student.high_school_left_month, student.is_crown_ward,
     application.academic_year_id, COALESCE(institution.federal_institution_code, institution_campus.federal_institution_code ) institution_code , application.aboriginal_status_id,  
     application.category_id, application.primary_address_id, application.parent1_net_income,
      application.parent2_net_income,  application.spouse_study_school_from, application.spouse_study_school_to,
-     application.courses_per_week, application.spouse_ln150_income
+     application.courses_per_week, application.spouse_ln150_income,
     application.is_spouse_study_csl, application.spouse_study_emp_status_id, application.is_minority, application.is_disabled,
     application.program_year_total, application.program_year,  application.prestudy_city_id, application.study_city_id, application.is_perm_disabled, 
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
-
-    funding_request.is_csg_only, funding_request.is_csl_full_amount, funding_request.csl_request_amount
-    
+    funding_request.is_csg_only, funding_request.is_csl_full_amount    
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
       INNER JOIN sfa.application ON (student.id = application.student_id)
