@@ -278,12 +278,12 @@ export class AssessmentCslftRepositoryV2 {
           .first();
 
         if (!parentMsol) {
-          console.log(
+          /* console.log(
             "PARENTMSOL NOT FOUND",
             this.application.academic_year_id,
             parentAddress.province_id,
             input.family_size
-          );
+          ); */
 
           logger.error(
             `${this.application.id} - Cannot find Parent Moderate Standard of living for province: ${parentAddress.province_id} and family size: ${input.family_size}`
@@ -311,11 +311,11 @@ export class AssessmentCslftRepositoryV2 {
 
             input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
           } else {
-            console.log(
+            /* console.log(
               "Contribution Formula not found for ",
               this.application.academic_year_id,
               input.parent_discretionary_income
-            );
+            ); */
 
             logger.error(
               `${this.application.id} - Contribution Formula not found for parent discretionary income: ${input.parent_discretionary_income}`
@@ -336,7 +336,7 @@ export class AssessmentCslftRepositoryV2 {
 
             input.parent_contribution = input.parent_weekly_contrib * input.study_weeks;
 
-            console.log("INSTEAD USING BASIC: ", contribution);
+            //console.log("INSTEAD USING BASIC: ", contribution);
           }
         } else {
           input.parent_contribution = 0;
@@ -653,7 +653,7 @@ export class AssessmentCslftRepositoryV2 {
         })
         .first();
 
-      console.log("Using Yukon childcareCeiling");
+      //console.log("Using Yukon childcareCeiling");
       this.childcareCeiling = yukonChildcareCeiling;
     }
 
@@ -666,7 +666,7 @@ export class AssessmentCslftRepositoryV2 {
         })
         .first();
 
-      console.log("Using Yukon livingAllowance", this.application.category_id, yukonLivingAllowance);
+      //console.log("Using Yukon livingAllowance", this.application.category_id, yukonLivingAllowance);
       this.livingAllowance = yukonLivingAllowance;
     }
   }
