@@ -353,6 +353,8 @@ export class AssessmentSTA extends AssessmentBaseRepository {
           disburse.tax_year = moment(disburse.issue_date).year();
         }
 
+        disburse.due_date = disburse.due_date ?? null;
+
         if (disburse?.id) {
           await this.updateDisbursements(disburse);
         } else {

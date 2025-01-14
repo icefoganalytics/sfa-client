@@ -154,6 +154,7 @@ export default {
 
     previewLetterClick(letter) {
       this.$emit("previewLetter", letter);
+      this.menu = false;
     },
     downloadLetterClick(letter) {
       let documentUrl = `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`;
