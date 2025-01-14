@@ -481,8 +481,6 @@ export class AssessmentCslftRepositoryV2 {
     input.has_overaward_applied = assessmentOverawards.find((o) => o.amount > 0) != null;
     //over_award can only be as big as the calculated = clear partial
 
-    console.log("DOING MATH", input.over_award, input.assessed_amount);
-
     input.net_amount =
       input.assessed_amount /* - (input.over_award ?? 0) */ - input.previous_cert - input.previous_disbursement /* -
       (input.return_uncashable_cert ?? 0) */;
@@ -545,10 +543,7 @@ export class AssessmentCslftRepositoryV2 {
     );
     const calculated_award: number = Math.max(0, Math.round(calculated_award_min));
 
-    console.log("DOING MATH 2", assess.over_award);
-
     if (assess.csl_full_amt_flag == 0) {
-      console.log("M1");
       assess.assessed_amount = Math.max(
         Math.min(calculated_award, assess.csl_request_amount ?? 0) -
           (assess.over_award ?? 0) -
@@ -556,7 +551,6 @@ export class AssessmentCslftRepositoryV2 {
         0
       );
     } else {
-      console.log("M2");
       assess.assessed_amount =
         Math.max((calculated_award ?? 0) - (assess.over_award ?? 0), 0) - (assess.return_uncashable_cert ?? 0);
     }
@@ -1079,8 +1073,6 @@ export class AssessmentCslftRepositoryV2 {
 
     //assess.over_award = assess.over_award ?? 0; // totalOveraward?.total ?? 0;
 
-    console.log("Setting Overaward", assess.over_award);
-
     // Calculate the totaln_disbursments_required
     if (assess.csl_full_amt_flag == 0) {
       assess.assessed_amount = Math.max(
@@ -1104,7 +1096,7 @@ export class AssessmentCslftRepositoryV2 {
       return this.studentCategories.find((c: any) => c.code == "SDA")?.id || -1;
     } else if ([2, 5].includes(cslClassification) && accomodationCode == 1) {
       return this.studentCategories.find((c: any) => c.code == "SIH")?.id || -1;
-    } else if ([2, 5].includes(cslClassification ?? 0) && accomodationCode == 2) {
+    } else if ([2, 5].includes(cslClassification ?? 0)) {
       return this.studentCategories.find((c: any) => c.code == "SIA")?.id || -1;
     } else if (cslClassification == 3) {
       return this.studentCategories.find((c: any) => c.code == "M")?.id || -1;
