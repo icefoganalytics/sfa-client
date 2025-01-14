@@ -1,4 +1,5 @@
 import { DB_CONFIG } from "@/config";
+import { AssessmentCslftRepositoryV2 } from "@/repositories";
 import { weeksBetween } from "@/utils/date-utils";
 import { application } from "express";
 import knex from "knex";
@@ -52,7 +53,7 @@ export class NarsV17_2ReportingService {
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
     funding_request.is_csg_only, funding_request.is_csl_full_amount, 
-    CAST( funding_request.csl_request_amount AS INT) csl_request_amount    
+    CAST(funding_request.csl_request_amount AS INT) csl_request_amount
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
       INNER JOIN sfa.application ON (student.id = application.student_id)
@@ -241,6 +242,12 @@ export class NarsV17_2ReportingService {
     if (app.is_csg_only) req_need = 0;
     else if (app.is_csl_full_amount) req_need = app.study_weeks * 300; // should be 300 for 2023
 
+    let repo = new AssessmentCslftRepositoryV2(db);
+
+    const assessment = await db("sfa.assessment").where({ id: app.id }).first();
+    const a2 = await repo.loadExisting(assessment, appId?.application_id);
+    let parent_cont = a2?.parent_contribution_override ?? a2?.parent_contribution ?? 0;
+
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
     row.push(new Column("prov_issue", "YT", " ", 2));
@@ -324,7 +331,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("stud_cont_targfund", stud_cont_targfund, "0", 6));
     row.push(new Column("stud_cont_bsa", Math.max(0, stud_sp_inc_mbsa_tot - 1800), "0", 6));
     row.push(new Column("fs_cont_amt", app.student_contribution ?? "0", "0", 6));
-    row.push(new Column("parent_cont", app.parent_contribution_override ?? "0", "0", 6));
+    row.push(new Column("parent_cont", parent_cont ?? "0", "0", 6));
     row.push(new Column("frspousal_cont_amt", app.spouse_contribution ?? "0", "0", 6));
     row.push(new Column("other_resources", "0", "0", 6)); // always 0
     row.push(new Column("tot_ass_res", tot_ass_res, "0", 6)); // total, but we only use 1 field
@@ -353,7 +360,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("stud_sp_cost_other", stud_sp_cost_other, "0", 6)); // catch-all bucket
     row.push(new Column("tot_ass_cost", totalCosts, "0", 6));
 
-    row.push(new Column("req_need", req_need, "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multilples of 210/week)
+    row.push(new Column("req_need", Math.round(req_need), "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multiples of 300/week)
     row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
     row.push(new Column("ass_csl_bef_overa", csl_ft || 0, "0", 6)); // sum of loan disbursements for this assessment
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
