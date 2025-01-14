@@ -149,6 +149,7 @@
                   :item="item"
                   :type="fundingTypeOptions?.find((ft) => ft.id === item.request_type_id)?.description"
                   v-on:showError="showError"
+                  v-on:previewLetter="previewLetter"
                 ></status-documents>
               </div>
             </div>
@@ -164,6 +165,7 @@
       v-on:showError="showError"
       v-on:showSuccess="showSuccess"
     ></component>
+    <pdf-preview-sidebar ref="pdfPreviewSide"></pdf-preview-sidebar>
   </div>
 </template>
 
@@ -173,12 +175,13 @@ import axios from "axios";
 //Grants and Scholarships
 import { assessmentType } from "@/components/application/assessmentType.js";
 import StatusDocuments from "./StatusDocuments.vue";
+import PdfPreviewSidebar from "@/components/PDFPreviewSidebar.vue";
 import { mapGetters } from "vuex";
 import { REQUEST_TYPES, STATUS, STATUS_REASON, APPLICATION_URL } from "@/urls";
 
 export default {
   name: "application-status",
-  components: { StatusDocuments },
+  components: { StatusDocuments, PdfPreviewSidebar },
   computed: {
     ...mapGetters(["assessments"]),
     application: function() {
@@ -284,7 +287,7 @@ export default {
           break;
 
         default:
-         /*  if (request_type_id == 4) {
+          /*  if (request_type_id == 4) {
             console.log("THIS IS A 4")
             window.open(`/application/${this.applicationId}/cslft/${funding_request_id}`)
           } */
@@ -363,6 +366,12 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
+    },
+    previewLetter(letter) {
+      this.$refs.pdfPreviewSide.show(
+        letter.file_name,
+        `${APPLICATION_URL}/${letter.application_id}/funding-request/${letter.funding_request_id}/letters/${letter.object_key}`
+      );
     },
   },
 };
