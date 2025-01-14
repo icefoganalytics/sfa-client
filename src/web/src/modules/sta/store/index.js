@@ -1,6 +1,7 @@
 import axios from "axios";
 import _ from "lodash";
 import { ASSESSMENT } from "@/urls";
+import moment from "moment";
 
 const state = {
   assessmentSTA: {},
@@ -15,6 +16,11 @@ const mutations = {
     state.assessmentSTA = value;
   },
   SET_DISBURSEMENT_LIST_STA(state, value) {
+    for (let v of value) {
+      v.due_date = v.due_date ? moment.utc(v.due_date).format("YYYY-MM-DD") : undefined;
+      v.issue_date = v.issue_date ? moment.utc(v.issue_date).format("YYYY-MM-DD") : undefined;
+    }
+
     state.disbursementListSTA = value;
   },
 };

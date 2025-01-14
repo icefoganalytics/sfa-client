@@ -425,302 +425,14 @@
       </div>
       <div class="col-lg-12">
         <v-card class="default mb-5 bg-color-blue">
-          <v-card-title>Disbursements</v-card-title>
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-            <div
-              :class="[
-                institutionCode === 'LPAH' ? 'col-xs-1 col-sm-1 col-lg-1' : 'col-xs-2 col-sm-2 col-lg-2',
-                'nopadding',
-                'd-flex',
-                'align-center',
-                'justify-center',
-              ]"
-              style="margin-right: 4px"
-            >
-              <p class="nomargin">Disbursed Amt</p>
-            </div>
-            <div
-              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
-              style="margin-right: 4px"
-            >
-              <p class="nomargin">Reference #</p>
-            </div>
-            <div
-              class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"
-              style="margin-right: 4px"
-            >
-              <p class="nomargin">Disbursement Type</p>
-            </div>
-            <div
-              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
-              style="margin-right: 4px"
-            >
-              <p class="nomargin">Issue Date</p>
-            </div>
-            <div
-              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
-              style="margin-right: 4px"
-              v-if="institutionCode === 'LPAH'"
-            >
-              <p class="nomargin" style="font-size: 14px">Tax Year</p>
-            </div>
-            <div
-              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
-              style="margin-right: 4px"
-              v-if="institutionCode === 'LPAH'"
-            >
-              <p class="nomargin" style="font-size: 14px">Due Date</p>
-            </div>
-            <div
-              :class="[
-                institutionCode === 'LPAH' ? 'col-xs-3 col-sm-3 col-lg-3' : 'col-xs-4 col-sm-4 col-lg-4',
-                'nopadding',
-                'd-flex',
-                'align-center',
-                'justify-center',
-              ]"
-              style="margin-right: 4px"
-            >
-              <p class="nomargin">Change Reason</p>
-            </div>
-            <div
-              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
-              :style="institutionCode === 'LPAH' ? 'margin-right: 4px' : ''"
-            >
-              <p class="nomargin">Batch ID</p>
-            </div>
-          </div>
-          <div v-for="(item, index) in disbursements" :key="index">
-            <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
-              <div
-                :class="[
-                  institutionCode === 'LPAH' ? 'col-xs-1 col-sm-1 col-lg-1' : 'col-xs-2 col-sm-2 col-lg-2',
-                  'nopadding',
-                ]"
-                style="margin-right: 6px"
-              >
-                <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  @keypress="validate.isNumber($event)"
-                  :value="item.disbursed_amount"
-                  @input="
-                    (e) => {
-                      if (isNaN(parseInt(e))) {
-                        item.disbursed_amount = 0;
-                      } else {
-                        item.disbursed_amount = parseInt(e);
-                      }
-                    }
-                  "
-                  @change="refresh"
-                ></v-text-field>
-              </div>
-              <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-                <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  @keypress="validate.isNumber($event)"
-                  v-model="item.transaction_number"
-                  @change="
-                    (e) => {
-                      if (!item.transaction_number) {
-                        item.transaction_number = null;
-                        refresh();
-                      }
-                    }
-                  "
-                ></v-text-field>
-              </div>
-              <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
-                <v-select
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  v-model="item.disbursement_type_id"
-                  clearable
-                  @change="refresh"
-                  :items="disbursementTypes"
-                  item-text="description"
-                  item-value="id"
-                ></v-select>
-              </div>
-              <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-                <v-menu
-                  v-model="item.issue_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      :value="item.issue_date?.slice(0, 10)"
-                      hide-details
-                      readonly
-                      outlined
-                      dense
-                      background-color="white"
-                      v-bind="attrs"
-                      v-on="on"
-                      clearable
-                      @change="
-                        (e) => {
-                          $emit('refresh', true);
-                          item.issue_date = null;
-                        }
-                      "
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    :value="item.issue_date?.slice(0, 10)"
-                    @input="
-                      (e) => {
-                        item.issue_date = e;
-                        if (institutionCode === 'LUAA') {
-                          item.due_date = e;
-                        }
-                        item.issue_date_menu = false;
-                      }
-                    "
-                  ></v-date-picker>
-                </v-menu>
-              </div>
-              <div
-                v-if="institutionCode === 'LPAH'"
-                class="col-xs-1 col-sm-1 col-lg-1 nopadding"
-                style="margin-right: 6px"
-              >
-                <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  @keypress="validate.isNumber($event)"
-                  v-model="item.tax_year"
-                  @change="refresh"
-                ></v-text-field>
-              </div>
-              <div
-                v-if="institutionCode === 'LPAH'"
-                class="col-xs-1 col-sm-1 col-lg-1 nopadding"
-                style="margin-right: 6px"
-              >
-                <v-menu
-                  v-model="item.due_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      :value="item.due_date?.slice(0, 10)"
-                      hide-details
-                      outlined
-                      dense
-                      background-color="white"
-                      v-bind="attrs"
-                      v-on="on"
-                      clearable
-                      @change="
-                        (e) => {
-                          $emit('refresh', true);
-                          item.due_date = null;
-                        }
-                      "
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    :value="item.due_date?.slice(0, 10)"
-                    @input="
-                      (e) => {
-                        item.due_date = e;
-                        item.due_date_menu = false;
-                      }
-                    "
-                  ></v-date-picker>
-                </v-menu>
-              </div>
-              <div
-                :class="[
-                  institutionCode === 'LPAH' ? 'col-xs-3 col-sm-3 col-lg-3' : 'col-xs-4 col-sm-4 col-lg-4',
-                  'nopadding',
-                ]"
-                style="margin-right: 6px"
-              >
-                <v-select
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  v-model="item.change_reason_id"
-                  clearable
-                  @change="refresh"
-                  :items="changeReasons"
-                  item-text="description"
-                  item-value="id"
-                ></v-select>
-              </div>
-              <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-                <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  @keypress="validate.isNumber($event)"
-                  v-model="item.financial_batch_id"
-                  @change="
-                    (e) => {
-                      if (!item.financial_batch_id) {
-                        item.financial_batch_id = null;
-                        refresh();
-                      }
-                    }
-                  "
-                ></v-text-field>
-              </div>
-              <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
-                <v-btn
-                  v-if="item?.id"
-                  color="error ml-5"
-                  x-small
-                  fab
-                  class="my-1"
-                  @click="removeDisbursement(item.id, index)"
-                >
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-                <v-btn v-else color="warning ml-5" x-small fab class="my-1" @click="cancelDisburse({ index })">
-                  <v-icon>mdi-close</v-icon>
-                </v-btn>
-              </div>
-            </div>
-          </div>
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-            <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-              <v-btn
-                @click="
-                  (e) => {
-                    addDisburse();
-                  }
-                "
-                color="success"
-                class=""
-              >
-                Add
-              </v-btn>
-            </div>
-          </div>
+          <v-card-text>
+            <SFADisbursements
+              :disbursements="disbursements"
+              @addDisbursement="addDisburse"
+              @removeDisbursement="removeDisbursement2"
+              ref="disburseComponent"
+            ></SFADisbursements>
+          </v-card-text>
         </v-card>
       </div>
       <confirm-dialog ref="confirm"></confirm-dialog>
@@ -731,7 +443,9 @@
 import store from "../../../store";
 import validator from "@/validator";
 import { mapGetters, mapActions } from "vuex";
+import SFADisbursements from "./SFADisbursements.vue";
 export default {
+  components: { SFADisbursements },
   name: "Home",
   props: {
     fundingRequestId: Number,
@@ -772,6 +486,8 @@ export default {
       this.saveSTAAssessment(this);
     },
     removeDisbursement(id, index) {
+      console.log("removeDisbursement", id, index);
+
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this disbursement.",
@@ -780,6 +496,22 @@ export default {
         },
         () => {}
       );
+    },
+    removeDisbursement2({ id, index }) {
+      console.log("removeDisbursement2", id, index);
+
+      if (id) {
+        this.$refs.confirm.show(
+          "Are you sure?",
+          "Click 'Confirm' below to permanently remove this disbursement.",
+          () => {
+            this.removeSTADisbursement({ index, disbursement_id: id, vm: this });
+          },
+          () => {}
+        );
+      } else {
+        this.cancelDisburse({ index });
+      }
     },
   },
   async created() {
