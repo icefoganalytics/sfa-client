@@ -92,19 +92,12 @@ export class NarsPTReportingService {
 
     //console.log("APPP", app);
 
-    let num_dep_child_pse = 0;
+    let family_size = 0;
     let depchild_to_11_and_dis_12over = 0;
     let depchild_12over_ndis_andothdep = 0;
     let hasDependents = "N";
 
-    let cat_code =
-      app.csl_classification == 3
-        ? "1"
-        : app.csl_classification == 4
-        ? "2"
-        : [2, 5].includes(app.csl_classification)
-        ? 3
-        : 4;
+    let cat_code = app.csl_classification == 3 ? "1" : app.csl_classification == 4 ? "2" : 3;
 
     let res_postal = app.primary_postal_code ? app.primary_postal_code.replace(" ", "").replace("-", "") : "XXXXXX";
 
@@ -129,6 +122,15 @@ export class NarsPTReportingService {
     let stud_sp_cost_computers = 0;
     let stud_sp_cost_other = 0;
 
+    let family = await calculateFamilySize(
+      app.csl_classification,
+      appId?.application_id ?? 0,
+      !isEmpty(app.parent1_sin),
+      !isEmpty(app.parent2_sin)
+    );
+
+    family_size = family.family_size;
+
     if (appId) {
       let applicationId = appId.application_id;
       let deps = await db("sfa.dependent")
@@ -152,14 +154,14 @@ export class NarsPTReportingService {
         }
       }
 
-      // Dependent
-      if (cat_code == 4) {
-        num_dep_child_pse = 1 + parentDeps.filter((d) => d.is_attend_post_secondary).length;
-        depchild_12over_ndis_andothdep = 1 + parentDeps.length - depCounts;
-      } // Married or single parent
-      else if (cat_code == 1 || cat_code == 2) {
-        num_dep_child_pse = 1 + deps.filter((d) => d.is_post_secondary).length;
+      // Married or single parent
+      if (cat_code == 1 || cat_code == 2) {
         depchild_12over_ndis_andothdep = deps.length - depCounts;
+      }
+      // Dependent or no dependents
+      else {
+        family_size = 1;
+        depchild_12over_ndis_andothdep = 1 + parentDeps.length - depCounts;
       }
 
       let otherFunds = await db("sfa.funding_request")
@@ -194,13 +196,6 @@ export class NarsPTReportingService {
       console.log("NO APP");
     }
 
-    let family = await calculateFamilySize(
-      app.csl_classification,
-      appId?.application_id ?? 0,
-      !isEmpty(app.parent1_sin),
-      !isEmpty(app.parent2_sin)
-    );
-
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
     row.push(new Column("prov_issue", "YT", " ", 2));
@@ -219,7 +214,7 @@ export class NarsPTReportingService {
     row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_disabled ? "2" : "0", " ", 1));
     row.push(new Column("disab_sr_status", app.is_disabled && !app.is_perm_disabled ? "Y" : "N", " ", 1));
 
-    row.push(new Column("family_size", app.family_size ?? family.family_size, " ", 2));
+    row.push(new Column("family_size", family_size, " ", 2));
     row.push(new Column("dep_under12_or_disabled", depchild_to_11_and_dis_12over, " ", 1));
     row.push(new Column("depchild_12over_ndis_andOthDep", depchild_12over_ndis_andothdep, " ", 1));
 
