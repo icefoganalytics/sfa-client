@@ -197,7 +197,7 @@ export class NarsV17_2ReportingService {
 
       let expenses = await db("sfa.expense").where({ application_id: applicationId });
       let compExp = expenses.find((e) => e.category_id == 14);
-      if (compExp) stud_sp_cost_computers = Math.ceil(compExp.amount);
+      if (compExp) stud_sp_cost_computers = Math.min(300, Math.ceil(compExp.amount)); // $300 is the max for computers
 
       let incomes = await db("sfa.income").where({ application_id: applicationId });
       let scholarshipIncome = incomes.filter((e) => e.income_type_id == 16); // Scholarships - Merit Based
@@ -219,13 +219,14 @@ export class NarsV17_2ReportingService {
     // costs
     let totalCosts = 0;
     totalCosts += app.tuition_estimate;
-    totalCosts += Math.min(2700, Math.ceil(app.books_supplies_cost));
+    totalCosts += Math.min(3000, Math.ceil(app.books_supplies_cost));
     totalCosts += app.shelter_month * app.study_months;
     totalCosts += app.p_trans_month * app.study_months;
     totalCosts += Math.ceil(app.day_care_actual * app.study_months);
     totalCosts += stud_sp_cost_ret_transp;
     totalCosts += app.x_trans_total;
     totalCosts += app.relocation_total;
+    totalCosts += stud_sp_cost_computers;
 
     stud_sp_cost_living_allow = app.shelter_month * app.study_months + app.p_trans_month * app.study_months;
 
@@ -241,9 +242,7 @@ export class NarsV17_2ReportingService {
     if (app.is_csg_only) req_need = 0;
     else if (app.is_csl_full_amount) req_need = app.study_weeks * 300; // should be 300 for 2023
 
-    console.log(req_need, app.is_csg_only, app.is_csl_full_amount)
-
-
+    console.log(req_need, app.is_csg_only, app.is_csl_full_amount);
 
     let repo = new AssessmentCslftRepositoryV2(db);
 
@@ -356,7 +355,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 6));
     row.push(new Column("stud_sp_cost_comp_fee", "0", "0", 6)); // always 0
     row.push(new Column("stud_sp_cost_computers", stud_sp_cost_computers, "0", 6));
-    row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 6));
+    row.push(new Column("stud_sp_cost_allow_book", Math.min(3000, Math.ceil(app.books_supplies_cost)), "0", 6));
     row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 6));
     row.push(new Column("stud_sp_cost_ret_transp", stud_sp_cost_ret_transp, "0", 6));
     row.push(new Column("stud_sp_cost_other_trans", app.x_trans_total + app.relocation_total, "0", 6));
