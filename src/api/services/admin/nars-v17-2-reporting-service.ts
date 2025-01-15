@@ -242,13 +242,12 @@ export class NarsV17_2ReportingService {
     if (app.is_csg_only) req_need = 0;
     else if (app.is_csl_full_amount) req_need = app.study_weeks * 300; // should be 300 for 2023
 
-    console.log(req_need, app.is_csg_only, app.is_csl_full_amount);
-
     let repo = new AssessmentCslftRepositoryV2(db);
 
     const assessment = await db("sfa.assessment").where({ id: app.id }).first();
     const a2 = await repo.loadExisting(assessment, appId?.application_id);
     let parent_cont = a2?.parent_contribution_override ?? a2?.parent_contribution ?? 0;
+    tot_ass_res = a2?.total_contribution ?? 0;
 
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
