@@ -97,6 +97,8 @@ export class NarsDisabilityReportingService {
       let disGrant = otherFunds.find((f) => f.request_type_id == 29);
       let disSEGrant = otherFunds.find((f) => f.request_type_id == 30);
 
+      if (!disSEGrant) return []; // this should only be people who were funding through CSGDSE
+
       if (disGrant) csg_d = Math.ceil(disGrant.disbursed_amount);
       if (disGrant) csg_d_date = disGrant.disbursed_date;
       if (disGrant) csg_di_date = disGrant.issue_date;
@@ -155,15 +157,15 @@ export class NarsDisabilityReportingService {
     row.push(new Column("csg_pdse_disbdate", csg_dse_date ? moment.utc(csg_dse_date).format("YYYYMMDD") : "", " ", 8));
 
     row.push(new Column("disab_code1", code1, ".", 1));
-    row.push(new Column("disab_code2", code2, ".", 1));
-    row.push(new Column("disab_code3", code3, ".", 1));
+    row.push(new Column("disab_code2", code2, "Z", 1));
+    row.push(new Column("disab_code3", code3, "Z", 1));
 
-    row.push(new Column("type_serv_eqpt1", types[0] ? types[0] : "", ".", 2));
-    row.push(new Column("type_serv_eqpt2", types[1] ? types[1] : "", ".", 2));
-    row.push(new Column("type_serv_eqpt3", types[2] ? types[2] : "", ".", 2));
-    row.push(new Column("type_serv_eqpt4", types[3] ? types[3] : "", ".", 2));
-    row.push(new Column("type_serv_eqpt5", types[4] ? types[4] : "", ".", 2));
-    row.push(new Column("type_serv_eqpt6", types[5] ? types[5] : "", ".", 2));
+    row.push(new Column("type_serv_eqpt1", types[0] ? types[0] : "98", ".", 2));
+    row.push(new Column("type_serv_eqpt2", types[1] ? types[1] : "98", ".", 2));
+    row.push(new Column("type_serv_eqpt3", types[2] ? types[2] : "98", ".", 2));
+    row.push(new Column("type_serv_eqpt4", types[3] ? types[3] : "98", ".", 2));
+    row.push(new Column("type_serv_eqpt5", types[4] ? types[4] : "98", ".", 2));
+    row.push(new Column("type_serv_eqpt6", types[5] ? types[5] : "98", ".", 2));
 
     row.push(new Column("type_serveqpt_desc1", "", ".", 25));
     row.push(new Column("type_serveqpt_desc2", "", ".", 25));

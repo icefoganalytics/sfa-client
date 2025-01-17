@@ -149,8 +149,8 @@ export class NarsV17_2ReportingService {
 
     let spouse_num_sp_weeks =
       app.spouse_study_school_from && app.spouse_study_school_to
-        ? weeksBetween(app.spouse_study_school_from, app.spouse_study_school_to)
-        : "";
+        ? Math.min(52, weeksBetween(app.spouse_study_school_from, app.spouse_study_school_to))
+        : null;
 
     let spouse_student = cat_code == "1" && isNumber(spouse_num_sp_weeks) ? "Y" : "N";
 
@@ -216,31 +216,42 @@ export class NarsV17_2ReportingService {
       console.log("NO APP");
     }
 
+    let stud_sp_cost_allow_book = Math.min(3000, Math.ceil(app.books_supplies_cost));
+    stud_sp_cost_allow_book -= stud_sp_cost_computers;
+
     // costs
     let totalCosts = 0;
-    totalCosts += app.tuition_estimate;
-    totalCosts += Math.min(3000, Math.ceil(app.books_supplies_cost));
+    /* totalCosts += app.tuition_estimate;
+    totalCosts += stud_sp_cost_allow_book;
     totalCosts += app.shelter_month * app.study_months;
     totalCosts += app.p_trans_month * app.study_months;
     totalCosts += Math.ceil(app.day_care_actual * app.study_months);
     totalCosts += stud_sp_cost_ret_transp;
     totalCosts += app.x_trans_total;
     totalCosts += app.relocation_total;
-    totalCosts += stud_sp_cost_computers;
+    totalCosts += stud_sp_cost_computers; */
 
     stud_sp_cost_living_allow = app.shelter_month * app.study_months + app.p_trans_month * app.study_months;
 
     stud_sp_cost_other =
       (app.depend_food_allowable + app.depend_tran_allowable) * app.study_months + app.discretionary_cost_actual;
 
+    totalCosts += stud_sp_cost_living_allow;
+    totalCosts += app.tuition_estimate;
+    totalCosts += stud_sp_cost_computers;
+    totalCosts += stud_sp_cost_allow_book ?? 0;
+    totalCosts += Math.ceil(app.day_care_actual * app.study_months);
+    totalCosts += stud_sp_cost_ret_transp;
+    totalCosts += app.x_trans_total + app.relocation_total;
     totalCosts += stud_sp_cost_other;
+
     //stud_sp_cost_other -= stud_sp_cost_computers; this is causing costs to be negative. Other doesn't include computers, so not sure why it's being removed
 
     let req_need = app.csl_request_amount;
     let tot_ass_res = app.student_expected_contribution ?? 0;
 
     if (app.is_csg_only) req_need = 0;
-    else if (app.is_csl_full_amount) req_need = app.study_weeks * 300; // should be 300 for 2023
+    else if (app.is_csl_full_amount) req_need = Math.min(52, app.study_weeks) * 300; // should be 300 for 2023
 
     let repo = new AssessmentCslftRepositoryV2(db);
 
@@ -253,7 +264,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
     row.push(new Column("prov_issue", "YT", " ", 2));
     row.push(new Column("app_number", `${app.id}`, "0", 8));
-    row.push(new Column("version_num", app.assessment_type_id == 1 ? "1" : "2", "0", 2));
+    row.push(new Column("version_num", app.assessment_type_id == 1 ? "01" : "02", "0", 2));
     row.push(new Column("app_status", app_status, " ", 1));
 
     row.push(new Column("assess_date", moment.utc(app.assessed_date).format("YYYYMMDD"), " ", 8));
@@ -278,7 +289,7 @@ export class NarsV17_2ReportingService {
 
     row.push(new Column("spouse_sin", app.spouse_sin ?? ".", " ", 9));
     row.push(new Column("spouse_student", spouse_student, " ", 1));
-    row.push(new Column("spouse_num_sp_weeks", spouse_num_sp_weeks, " ", 2));
+    row.push(new Column("spouse_num_sp_weeks", spouse_num_sp_weeks ?? ".", " ", 2));
 
     row.push(new Column("family_size", family.family_size, "0", 2));
     row.push(new Column("num_dep_child_pse", family.post_secondary, " ", 1));
@@ -290,14 +301,14 @@ export class NarsV17_2ReportingService {
 
     row.push(new Column("ei_code", app.institution_code, " ", 4));
     row.push(new Column("pos", app.field_program_code, " ", 2));
-    row.push(new Column("pos2", "", " ", 25)); // send blank
+    row.push(new Column("pos2", ".", " ", 25)); // send blank
     row.push(new Column("program_type", program_type, " ", 1));
     row.push(new Column("year_study", Math.min(app.program_year, 4), " ", 1));
     row.push(new Column("year_in_program", app.program_year, "1", 1));
     row.push(new Column("program_duration", app.program_year_total, "0", 1));
     row.push(new Column("pscd", moment.utc(app.classes_start_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("psed", moment.utc(app.classes_end_date).format("YYYYMMDD"), " ", 8));
-    row.push(new Column("num_sp_assess_weeks", app.study_weeks ?? 1, "0", 2));
+    row.push(new Column("num_sp_assess_weeks", Math.min(52, app.study_weeks) ?? 1, "0", 2));
     row.push(new Column("perc_full_course_load", app.percent_of_full_time ?? 60, "0", 3));
     row.push(new Column("early_withdrawal_ind", `0`, " ", 1)); //always send 0
 
@@ -339,7 +350,7 @@ export class NarsV17_2ReportingService {
 
     row.push(new Column("fs_cont_exempt_indig", indigenous_flag, " ", 1));
     row.push(new Column("fs_cont_exempt_pd", app.is_disabled ? "Y" : "N", " ", 1));
-    row.push(new Column("fs_cont_exempt_dependant", family.total_dependants > 0 ? "Y" : "N", " ", 1));
+    row.push(new Column("fs_cont_exempt_dependant", family.student_dependants > 0 ? "Y" : "N", " ", 1));
     row.push(new Column("fs_cont_exempt_crown", app.student_contrib_exempt && app.is_crown_ward ? "Y" : "N", " ", 1));
     row.push(new Column("frspouse_cont_exempt_stud", spouse_num_sp_weeks ? "Y" : "N", " ", 1));
     row.push(new Column("frspouse_cont_exempt_ei", `N`, " ", 1)); // always N
@@ -354,7 +365,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 6));
     row.push(new Column("stud_sp_cost_comp_fee", "0", "0", 6)); // always 0
     row.push(new Column("stud_sp_cost_computers", stud_sp_cost_computers, "0", 6));
-    row.push(new Column("stud_sp_cost_allow_book", Math.min(3000, Math.ceil(app.books_supplies_cost)), "0", 6));
+    row.push(new Column("stud_sp_cost_allow_book", stud_sp_cost_allow_book ?? 0, "0", 6));
     row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 6));
     row.push(new Column("stud_sp_cost_ret_transp", stud_sp_cost_ret_transp, "0", 6));
     row.push(new Column("stud_sp_cost_other_trans", app.x_trans_total + app.relocation_total, "0", 6));
@@ -363,11 +374,11 @@ export class NarsV17_2ReportingService {
 
     row.push(new Column("req_need", Math.round(req_need), "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multiples of 300/week)
     row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
-    row.push(new Column("ass_csl_bef_overa", csl_ft || 0, "0", 6)); // sum of loan disbursements for this assessment
+    row.push(new Column("ass_csl_bef_overa", (Math.min(52, app.study_weeks) ?? 1) * 300, "0", 6)); // sum of loan disbursements for this assessment
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
     row.push(new Column("csl_over_award_recovered", "0", "0", 6)); // this is complicated by the over award change reason, 0 for now
     row.push(new Column("psl_over_award_recovered", "0", "0", 6)); // always 0
-    row.push(new Column("auth_csl_amt", csl_ft || 0, "0", 6));
+    row.push(new Column("auth_csl_amt", (Math.min(52, app.study_weeks) ?? 1) * 300, "0", 6));
     row.push(new Column("auth_psl_amt", "0", "0", 6)); // always 0
 
     row.push(new Column("csg_ft", csg_ft, "0", 6));
@@ -482,6 +493,7 @@ export async function calculateFamilySize(
 ): Promise<{
   family_size: number;
   total_dependants: number;
+  student_dependants: number;
   csl_dependants: number;
   csg_dependants: number;
   sta_dependants: number;
@@ -493,6 +505,7 @@ export async function calculateFamilySize(
   let family = {
     family_size: 0,
     total_dependants: 0,
+    student_dependants: 0,
     csl_dependants: 0,
     csg_dependants: 0,
     sta_dependants: 0,
@@ -538,6 +551,7 @@ export async function calculateFamilySize(
     family.csl_dependants = deps.filter((f: any) => f.is_csl_eligible).length;
     family.csg_dependants = deps.filter((f: any) => f.is_csg_eligible).length;
     family.sta_dependants = deps.filter((f: any) => f.is_sta_eligible).length;
+    family.student_dependants = deps.length;
 
     family.under12_or_disabled = deps.filter((f: any) => f.is_csl_eligible && (f.age < 11 || f.is_disability)).length;
     family.over11 = deps.filter((f: any) => f.is_csl_eligible && f.age >= 12).length;
