@@ -1,8 +1,7 @@
 import { DB_CONFIG } from "@/config";
 import { calculateFamilySize } from "./nars-v17-2-reporting-service";
-import { weeksBetween } from "@/utils/date-utils";
 import knex from "knex";
-import { isEmpty, isUndefined } from "lodash";
+import { isEmpty } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -117,7 +116,7 @@ export class NarsPTReportingService {
     let provGrants = 0;
 
     let stud_sp_cost_computers = 0;
-    let stud_sp_cost_other = 0;
+    let stud_sp_cost_other = 10 * app.courses_per_week * (Math.min(52, app.study_weeks) ?? 1);
 
     let family = await calculateFamilySize(
       app.csl_classification,
@@ -134,7 +133,7 @@ export class NarsPTReportingService {
         .innerJoin("sfa.dependent_eligibility", "dependent.id", "dependent_eligibility.dependent_id")
         .where({ application_id: applicationId, is_csl_eligible: true });
 
-      let parentDeps = await db("sfa.parent_dependent").where({ application_id: applicationId, is_eligible: true });
+      //let parentDeps = await db("sfa.parent_dependent").where({ application_id: applicationId, is_eligible: true });
       let depCounts = 0;
 
       for (let dep of deps) {
@@ -158,7 +157,8 @@ export class NarsPTReportingService {
       // Dependent or no dependents
       else {
         family_size = 1;
-        depchild_12over_ndis_andothdep = 1 + parentDeps.length - depCounts;
+        depchild_to_11_and_dis_12over = 0;
+        depchild_12over_ndis_andothdep = 0;
       }
 
       let otherFunds = await db("sfa.funding_request")
@@ -231,7 +231,7 @@ export class NarsPTReportingService {
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("spouse_gross_annual_inc", app.spouse_ln150_income ?? "", "0", 6));
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
-    row.push(new Column("family_income", app.student_ln150_income + app.spouse_ln150_income, "0", 6)); // always blank
+    row.push(new Column("family_income", (app.student_ln150_income ?? 0) + (app.spouse_ln150_income ?? 0), "0", 6)); // always blank
 
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 5));
     row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 5));
