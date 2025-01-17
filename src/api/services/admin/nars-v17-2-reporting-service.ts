@@ -248,7 +248,6 @@ export class NarsV17_2ReportingService {
     //stud_sp_cost_other -= stud_sp_cost_computers; this is causing costs to be negative. Other doesn't include computers, so not sure why it's being removed
 
     let req_need = app.csl_request_amount;
-    let tot_ass_res = app.student_expected_contribution ?? 0;
 
     if (app.is_csg_only) req_need = 0;
     else if (app.is_csl_full_amount) req_need = Math.min(52, app.study_weeks) * 300; // should be 300 for 2023
@@ -258,7 +257,9 @@ export class NarsV17_2ReportingService {
     const assessment = await db("sfa.assessment").where({ id: app.id }).first();
     const a2 = await repo.loadExisting(assessment, appId?.application_id);
     let parent_cont = a2?.parent_contribution_override ?? a2?.parent_contribution ?? 0;
-    tot_ass_res = a2?.total_contribution ?? 0;
+    let tot_ass_res = a2?.total_contribution ?? 0;
+
+    if (!isNumber(tot_ass_res)) console.log("STUDENT", tot_ass_res, appId);
 
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
