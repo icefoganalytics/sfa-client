@@ -58,9 +58,7 @@ export class NarsDisabilityRCLReportingService {
       INNER JOIN (SELECT funding_request_id, MAX(id) last_id FROM sfa.assessment GROUP BY funding_request_id) maxid ON assessment.id = maxid.last_id
       WHERE
       funding_request.request_type_id IN (4) AND application.academic_year_id = ${this.year} AND
-      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1) AND
-      application.student_id IN (select student_id from sfa.funding_request INNER JOIN sfa.application on funding_request.application_id = application.id 
-        where request_type_id = 30 and academic_year_id = ${this.year} and status_id = 7)
+      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)
     ORDER BY sin`);
 
     for (let student of this.allApplications) {
