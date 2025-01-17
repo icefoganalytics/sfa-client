@@ -259,7 +259,7 @@ export class NarsV17_2ReportingService {
     let parent_cont = a2?.parent_contribution_override ?? a2?.parent_contribution ?? 0;
     let tot_ass_res = a2?.total_contribution ?? 0;
 
-    if (!isNumber(tot_ass_res)) console.log("STUDENT", tot_ass_res, appId);
+    if (Number.isNaN(tot_ass_res)) console.log("STUDENT", tot_ass_res, appId);
 
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
