@@ -57,7 +57,7 @@ export class NarsDisabilityRCLReportingService {
         FROM sfa.disbursement GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
       INNER JOIN (SELECT funding_request_id, MAX(id) last_id FROM sfa.assessment GROUP BY funding_request_id) maxid ON assessment.id = maxid.last_id
       WHERE
-      funding_request.request_type_id IN (4,5) AND application.academic_year_id = ${this.year} AND
+      funding_request.request_type_id IN (4) AND application.academic_year_id = ${this.year} AND
       (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)
     ORDER BY sin`);
 
@@ -75,14 +75,7 @@ export class NarsDisabilityRCLReportingService {
 
     // console.log("Making rows for", app);
 
-    let cat_code =
-      app.csl_classification == 3
-        ? "1"
-        : app.csl_classification == 4
-        ? "2"
-        : [2, 5].includes(app.csl_classification)
-        ? 3
-        : 4;
+    let cat_code = app.csl_classification == 3 ? "M" : "S";
 
     let appId = await db("sfa.funding_request").where({ id: app.funding_request_id }).select("application_id").first();
     let csl_ft = 0;
@@ -144,7 +137,7 @@ export class NarsDisabilityRCLReportingService {
         8
       )
     );
-    row.push(new Column("course_load_changed_date", "", " ", 8));
+    row.push(new Column("course_load_changed_date", ".", " ", 8));
     row.push(new Column("perc_full_course_load", app.percent_of_full_time ?? 60, "0", 3));
     row.push(new Column("amt_disb", csl_ft || 0, "0", 6));
     row.push(new Column("disb_date", csl_ft_date ? moment.utc(csl_ft_date).format("YYYYMMDD") : ".", " ", 8));
