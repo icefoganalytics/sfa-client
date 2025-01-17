@@ -227,11 +227,25 @@ export class NarsPTReportingService {
     row.push(new Column("nr_of_courses", app.courses_per_week, "0", 1));
     row.push(new Column("early_withdrawal_ind", `0`, " ", 1)); //always send 0
 
-    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, "0", 6));
+    row.push(new Column("stud_gross_annual_inc", parseInt(app.student_ln150_income ?? 0), "0", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
-    row.push(new Column("spouse_gross_annual_inc", app.spouse_ln150_income ?? "", "0", 6));
+    row.push(
+      new Column(
+        "spouse_gross_annual_inc",
+        app.spouse_ln150_income ? parseInt(app.spouse_ln150_income ?? 0) : "",
+        "0",
+        6
+      )
+    );
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
-    row.push(new Column("family_income", (app.student_ln150_income ?? 0) + (app.spouse_ln150_income ?? 0), "0", 6)); // always blank
+    row.push(
+      new Column(
+        "family_income",
+        parseInt(app.student_ln150_income ?? 0) + parseInt(app.spouse_ln150_income ?? 0),
+        "0",
+        6
+      )
+    ); // always blank
 
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 5));
     row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 5));
