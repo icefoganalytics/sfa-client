@@ -97,8 +97,6 @@ export class NarsDisabilityReportingService {
       let disGrant = otherFunds.find((f) => f.request_type_id == 29);
       let disSEGrant = otherFunds.find((f) => f.request_type_id == 30);
 
-      if (!disSEGrant) return []; // this should only be people who were funding through CSGDSE
-
       if (disGrant) csg_d = Math.ceil(disGrant.disbursed_amount);
       if (disGrant) csg_d_date = disGrant.disbursed_date;
       if (disGrant) csg_di_date = disGrant.issue_date;
