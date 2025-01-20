@@ -372,7 +372,7 @@ export class NarsV17_2ReportingService {
 
     row.push(new Column("req_need", cleanMoney(req_need), "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multiples of 300/week)
     row.push(new Column("tot_calc_need", cleanMoney(totalCosts - tot_ass_res), "+", 7)); // calculated need in award tab
-    row.push(new Column("ass_csl_bef_overa", cleanMoney((Math.min(52, app.study_weeks) ?? 1) * 300), "0", 6)); // sum of loan disbursements for this assessment
+    row.push(new Column("ass_csl_bef_overa", cleanMoney(csl_ft || 0), "0", 6)); // sum of loan disbursements for this assessment (* should have overawards ignored)
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
     row.push(new Column("csl_over_award_recovered", "0", "0", 6)); // this is complicated by the over award change reason, 0 for now
     row.push(new Column("psl_over_award_recovered", "0", "0", 6)); // always 0
