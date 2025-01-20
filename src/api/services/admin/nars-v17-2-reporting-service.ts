@@ -217,7 +217,12 @@ export class NarsV17_2ReportingService {
     }
 
     let stud_sp_cost_allow_book = Math.min(3000, Math.ceil(app.books_supplies_cost));
-    stud_sp_cost_allow_book -= stud_sp_cost_computers;
+    const booksPlusComp = stud_sp_cost_allow_book + stud_sp_cost_computers;
+
+    if (booksPlusComp > 3000) {
+      let overage = 3000 - booksPlusComp;
+      stud_sp_cost_allow_book -= overage;
+    }
 
     // costs
     let totalCosts = 0;
