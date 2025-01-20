@@ -1,5 +1,5 @@
 import { DB_CONFIG } from "@/config";
-import { calculateFamilySize } from "./nars-v17-2-reporting-service";
+import { calculateFamilySize, cleanMoney } from "./nars-v17-2-reporting-service";
 import knex from "knex";
 import { isEmpty } from "lodash";
 import moment from "moment";
@@ -227,12 +227,12 @@ export class NarsPTReportingService {
     row.push(new Column("nr_of_courses", app.courses_per_week, "0", 1));
     row.push(new Column("early_withdrawal_ind", `0`, " ", 1)); //always send 0
 
-    row.push(new Column("stud_gross_annual_inc", parseInt(app.student_ln150_income ?? 0), "0", 6));
+    row.push(new Column("stud_gross_annual_inc", cleanMoney(parseInt(app.student_ln150_income ?? 0)), "0", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
     row.push(
       new Column(
         "spouse_gross_annual_inc",
-        app.spouse_ln150_income ? parseInt(app.spouse_ln150_income ?? 0) : "",
+        cleanMoney(app.spouse_ln150_income ? parseInt(app.spouse_ln150_income ?? 0) : ""),
         "0",
         6
       )
@@ -241,28 +241,32 @@ export class NarsPTReportingService {
     row.push(
       new Column(
         "family_income",
-        parseInt(app.student_ln150_income ?? 0) + parseInt(app.spouse_ln150_income ?? 0),
+        cleanMoney(parseInt(app.student_ln150_income ?? 0) + parseInt(app.spouse_ln150_income ?? 0)),
         "0",
         6
       )
     ); // always blank
 
-    row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 5));
-    row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 5));
-    row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 5));
-    row.push(new Column("local_transport_allow", app.p_trans_month * app.study_months, "0", 5)); // not sure
-    row.push(new Column("miscellaneous_allow", stud_sp_cost_other, "0", 5)); // catch-all bucket
+    row.push(new Column("stud_sp_cost_tuition", cleanMoney(app.tuition_estimate), "0", 5));
+    row.push(
+      new Column("stud_sp_cost_allow_book", cleanMoney(Math.min(2700, Math.ceil(app.books_supplies_cost))), "0", 5)
+    );
+    row.push(
+      new Column("stud_sp_cost_allow_child", cleanMoney(Math.ceil(app.day_care_actual * app.study_months)), "0", 5)
+    );
+    row.push(new Column("local_transport_allow", cleanMoney(app.p_trans_month * app.study_months), "0", 5)); // not sure
+    row.push(new Column("miscellaneous_allow", cleanMoney(stud_sp_cost_other), "0", 5)); // catch-all bucket
 
-    row.push(new Column("csl_pt_amt", csl_pt || 0, "0", 5)); // sum of loan disbursements for this assessment
+    row.push(new Column("csl_pt_amt", cleanMoney(csl_pt || 0), "0", 5)); // sum of loan disbursements for this assessment
     row.push(new Column("psl_pt_amt", "", "0", 5)); // always 0
-    row.push(new Column("principal_outstanding", app.outstanding_cslpt_amount ?? "", "0", 5));
+    row.push(new Column("principal_outstanding", cleanMoney(app.outstanding_cslpt_amount, ""), "0", 5));
 
-    row.push(new Column("csg_pt_studies", csg_pt, "0", 5));
-    row.push(new Column("csg_ptdep", csg_ptdep, "0", 5));
-    row.push(new Column("csg_d", csg_d, "0", 5));
-    row.push(new Column("csg_dse", csg_dse, "0", 5));
+    row.push(new Column("csg_pt_studies", cleanMoney(csg_pt), "0", 5));
+    row.push(new Column("csg_ptdep", cleanMoney(csg_ptdep), "0", 5));
+    row.push(new Column("csg_d", cleanMoney(csg_d), "0", 5));
+    row.push(new Column("csg_dse", cleanMoney(csg_dse), "0", 5));
 
-    row.push(new Column("psg_pt_amt", provGrants, "0", 6));
+    row.push(new Column("psg_pt_amt", cleanMoney(provGrants), "0", 6));
 
     //console.log(row.columns.length);
     //console.log(row.columns.reduce((a, r) => a + r.length, 0));
