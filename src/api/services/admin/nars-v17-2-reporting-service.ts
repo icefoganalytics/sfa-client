@@ -266,7 +266,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("cat_code", family.narsCatCode, " ", 1));
     row.push(new Column("single_ind_stat_reas", single_ind_stat_reas, " ", 1)); // 1-6
     row.push(new Column("social_assist_flag", "N", " ", 1)); // always N
-    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_persist_disabled ? "2" : "0", " ", 1));
+    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_disabled ? "2" : "0", " ", 1));
     row.push(new Column("disab_sr_status", app.is_persist_disabled ? "Y" : "", " ", 1));
     row.push(new Column("indigenous_flag", indigenous_flag, " ", 1));
     row.push(new Column("indigenous_cat", indigenous_cat, " ", 1));
