@@ -163,6 +163,7 @@ export class NarsV17_2ReportingService {
     let csg_dse = 0;
 
     let provGrants = 0;
+    let otherExpenses = 0;
 
     let stud_sp_cost_living_allow = 0;
     let stud_sp_cost_computers = 0;
@@ -199,6 +200,13 @@ export class NarsV17_2ReportingService {
       let compExp = expenses.find((e) => e.category_id == 14);
       if (compExp) stud_sp_cost_computers = Math.round(Math.min(300, Math.ceil(compExp.amount))); // $300 is the max for computers
 
+      const otherExpenseTypes = [1, 2, 4, 5, 6, 7, 8, 9];
+
+      otherExpenses = expenses
+        .filter((e) => otherExpenseTypes.includes(e.category_id))
+        .map((e) => e.amount)
+        .reduce((a, f) => a + f, 0);
+
       let incomes = await db("sfa.income").where({ application_id: applicationId });
       let scholarshipIncome = incomes.filter((e) => e.income_type_id == 16); // Scholarships - Merit Based
 
@@ -229,7 +237,9 @@ export class NarsV17_2ReportingService {
     stud_sp_cost_living_allow = app.shelter_month * app.study_months + app.p_trans_month * app.study_months;
 
     stud_sp_cost_other =
-      (app.depend_food_allowable + app.depend_tran_allowable) * app.study_months + app.discretionary_cost_actual;
+      (app.depend_food_allowable + app.depend_tran_allowable) * app.study_months +
+      app.discretionary_cost_actual +
+      otherExpenses;
 
     totalCosts += stud_sp_cost_living_allow;
     totalCosts += app.tuition_estimate;
