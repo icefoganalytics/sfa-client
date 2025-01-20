@@ -443,7 +443,7 @@ export class AssessmentCslftRepositoryV2 {
         }
       }
     }
-    input.total_contribution = total_contribution;
+    input.total_contribution = total_contribution ?? 0;
     input.total_resources = input.total_contribution;
     input.csl_assessed_need = input.total_costs - input.total_resources;
     input.csl_assessed_need_pct = input.csl_assessed_need * 0.6;
@@ -593,9 +593,6 @@ export class AssessmentCslftRepositoryV2 {
       uncapped_expenses.reduce((a: number, i: any) => a + i.amount, 0);
 
     assess.csl_assessed_need = total_costs - total_contribution;
-
-    //assess.total_contribution = total_contribution;
-    //assess.total_resources = assess.total_contribution;
 
     return assess;
   }
