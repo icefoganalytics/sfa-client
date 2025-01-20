@@ -386,7 +386,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
     row.push(new Column("csl_over_award_recovered", "0", "0", 6)); // this is complicated by the over award change reason, 0 for now
     row.push(new Column("psl_over_award_recovered", "0", "0", 6)); // always 0
-    row.push(new Column("auth_csl_amt", cleanMoney((Math.min(52, app.study_weeks) ?? 1) * 300), "0", 6));
+    row.push(new Column("auth_csl_amt", cleanMoney(csl_ft || 0), "0", 6));
     row.push(new Column("auth_psl_amt", "0", "0", 6)); // always 0
 
     row.push(new Column("csg_ft", cleanMoney(csg_ft), "0", 6));
