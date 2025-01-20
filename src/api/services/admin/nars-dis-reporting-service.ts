@@ -53,7 +53,10 @@ export class NarsDisabilityReportingService {
       INNER JOIN (SELECT funding_request_id, MAX(id) last_id FROM sfa.assessment GROUP BY funding_request_id) maxid ON assessment.id = maxid.last_id
     where
       funding_request.request_type_id IN (4,5) AND application.academic_year_id = ${this.year} AND
-      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)`);
+      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)
+	    AND application.student_id IN (
+        select distinct student_id from sfa.funding_request inner join sfa.application on application.id = funding_request.application_id
+        where application.academic_year_id = ${this.year} and status_id = 7 and funding_request.request_type_id IN (29,30))`);
 
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
