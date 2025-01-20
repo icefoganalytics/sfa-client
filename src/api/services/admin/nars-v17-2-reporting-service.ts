@@ -3,7 +3,7 @@ import { AssessmentCslftRepositoryV2 } from "@/repositories";
 import { weeksBetween } from "@/utils/date-utils";
 import { application } from "express";
 import knex from "knex";
-import { isArray, isEmpty, isNumber, isUndefined } from "lodash";
+import { isArray, isEmpty, isNil, isNumber, isUndefined } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -197,7 +197,7 @@ export class NarsV17_2ReportingService {
 
       let expenses = await db("sfa.expense").where({ application_id: applicationId });
       let compExp = expenses.find((e) => e.category_id == 14);
-      if (compExp) stud_sp_cost_computers = Math.min(300, Math.ceil(compExp.amount)); // $300 is the max for computers
+      if (compExp) stud_sp_cost_computers = Math.round(Math.min(300, Math.ceil(compExp.amount))); // $300 is the max for computers
 
       let incomes = await db("sfa.income").where({ application_id: applicationId });
       let scholarshipIncome = incomes.filter((e) => e.income_type_id == 16); // Scholarships - Merit Based
@@ -217,20 +217,15 @@ export class NarsV17_2ReportingService {
     }
 
     let stud_sp_cost_allow_book = Math.min(3000, Math.ceil(app.books_supplies_cost));
-    stud_sp_cost_allow_book -= stud_sp_cost_computers;
+    const booksPlusComp = stud_sp_cost_allow_book + stud_sp_cost_computers;
+
+    if (booksPlusComp > 3000) {
+      let overage = 3000 - booksPlusComp;
+      stud_sp_cost_allow_book -= overage;
+    }
 
     // costs
     let totalCosts = 0;
-    /* totalCosts += app.tuition_estimate;
-    totalCosts += stud_sp_cost_allow_book;
-    totalCosts += app.shelter_month * app.study_months;
-    totalCosts += app.p_trans_month * app.study_months;
-    totalCosts += Math.ceil(app.day_care_actual * app.study_months);
-    totalCosts += stud_sp_cost_ret_transp;
-    totalCosts += app.x_trans_total;
-    totalCosts += app.relocation_total;
-    totalCosts += stud_sp_cost_computers; */
-
     stud_sp_cost_living_allow = app.shelter_month * app.study_months + app.p_trans_month * app.study_months;
 
     stud_sp_cost_other =
@@ -244,8 +239,6 @@ export class NarsV17_2ReportingService {
     totalCosts += stud_sp_cost_ret_transp;
     totalCosts += app.x_trans_total + app.relocation_total;
     totalCosts += stud_sp_cost_other;
-
-    //stud_sp_cost_other -= stud_sp_cost_computers; this is causing costs to be negative. Other doesn't include computers, so not sure why it's being removed
 
     let req_need = app.csl_request_amount;
 
@@ -278,7 +271,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("cat_code", family.narsCatCode, " ", 1));
     row.push(new Column("single_ind_stat_reas", single_ind_stat_reas, " ", 1)); // 1-6
     row.push(new Column("social_assist_flag", "N", " ", 1)); // always N
-    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_persist_disabled ? "2" : "0", " ", 1));
+    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_disabled ? "2" : "0", " ", 1));
     row.push(new Column("disab_sr_status", app.is_persist_disabled ? "Y" : "", " ", 1));
     row.push(new Column("indigenous_flag", indigenous_flag, " ", 1));
     row.push(new Column("indigenous_cat", indigenous_cat, " ", 1));
@@ -316,38 +309,40 @@ export class NarsV17_2ReportingService {
     row.push(new Column("date_left_high_school", date_left_high_school, " ", 8));
 
     row.push(new Column("stud_sp_inc_targ_fund_total", "0", "0", 6)); // always 0
-    row.push(new Column("stud_sp_inc_mbsa_tot", stud_sp_inc_mbsa_tot, "0", 6)); // dont know we have this info
-    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income ?? 0, "0", 6));
+    row.push(new Column("stud_sp_inc_mbsa_tot", cleanMoney(stud_sp_inc_mbsa_tot), "0", 6)); // dont know we have this info
+    row.push(new Column("stud_gross_annual_inc", cleanMoney(app.student_ln150_income, "0"), "0", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("parent1_gross_ann_inc", cat_code == "4" ? app.parent1_income ?? "" : "", "0", 6));
-    row.push(new Column("parent1_net_ann_inc", cat_code == "4" ? app.parent1_income ?? "" : "", "0", 6));
+    row.push(new Column("parent1_gross_ann_inc", cat_code == "4" ? cleanMoney(app.parent1_income, "") : "", "0", 6));
+    row.push(new Column("parent1_net_ann_inc", cat_code == "4" ? cleanMoney(app.parent1_income, "") : "", "0", 6));
     row.push(new Column("parent1_cpp_cont", "", "0", 6)); // always blank
     row.push(new Column("parent1_ei_prem", "", "0", 6)); // always blank
-    row.push(new Column("parent1_inc_tax_paid", cat_code == "4" ? app.parent1_tax_paid ?? "" : "", "0", 6));
-    row.push(new Column("parent1_tot_tax_inc", cat_code == "4" ? app.parent1_net_income ?? "" : "", "0", 6)); // always blank
+    row.push(new Column("parent1_inc_tax_paid", cat_code == "4" ? cleanMoney(app.parent1_tax_paid, "") : "", "0", 6));
+    row.push(new Column("parent1_tot_tax_inc", cat_code == "4" ? cleanMoney(app.parent1_net_income, "") : "", "0", 6)); // always blank
     row.push(new Column("parent1_gross_ann_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("parent1_net_ann_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("parent2_gross_ann_inc", cat_code == "4" ? app.parent2_income ?? "" : "", "0", 6));
-    row.push(new Column("parent2_net_ann_inc", cat_code == "4" ? app.parent2_income ?? "" : "", "0", 6));
+    row.push(new Column("parent2_gross_ann_inc", cat_code == "4" ? cleanMoney(app.parent2_income, "") : "", "0", 6));
+    row.push(new Column("parent2_net_ann_inc", cat_code == "4" ? cleanMoney(app.parent2_income, "") : "", "0", 6));
     row.push(new Column("parent2_cpp_cont", "", "0", 6)); // always blank
     row.push(new Column("parent2_ei_prem", "", "0", 6)); // always blank
-    row.push(new Column("parent2_inc_tax_paid", cat_code == "4" ? app.parent2_tax_paid ?? "" : "", "0", 6));
-    row.push(new Column("parent2_tot_tax_inc", cat_code == "4" ? app.parent2_net_income ?? "" : "", "0", 6)); // always blank
+    row.push(new Column("parent2_inc_tax_paid", cat_code == "4" ? cleanMoney(app.parent2_tax_paid, "") : "", "0", 6));
+    row.push(new Column("parent2_tot_tax_inc", cat_code == "4" ? cleanMoney(app.parent2_net_income, "") : "", "0", 6)); // always blank
     row.push(new Column("parent2_gross_ann_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("parent2_net_ann_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("spouse_gross_annual_inc", cat_code == "1" ? app.spouse_ln150_income ?? "" : "", "0", 6));
+    row.push(
+      new Column("spouse_gross_annual_inc", cat_code == "1" ? cleanMoney(app.spouse_ln150_income, "") : "", "0", 6)
+    );
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("stud_cont_targfund", stud_cont_targfund, "0", 6));
-    row.push(new Column("stud_cont_bsa", Math.max(0, stud_sp_inc_mbsa_tot - 1800), "0", 6));
-    row.push(new Column("fs_cont_amt", app.student_contribution ?? "0", "0", 6));
-    row.push(new Column("parent_cont", parent_cont ?? "0", "0", 6));
-    row.push(new Column("frspousal_cont_amt", app.spouse_contribution ?? "0", "0", 6));
+    row.push(new Column("stud_cont_targfund", cleanMoney(stud_cont_targfund), "0", 6));
+    row.push(new Column("stud_cont_bsa", cleanMoney(Math.max(0, stud_sp_inc_mbsa_tot - 1800)), "0", 6));
+    row.push(new Column("fs_cont_amt", cleanMoney(app.student_contribution, "0"), "0", 6));
+    row.push(new Column("parent_cont", cleanMoney(parent_cont, "0"), "0", 6));
+    row.push(new Column("frspousal_cont_amt", cleanMoney(app.spouse_contribution, "0"), "0", 6));
     row.push(new Column("other_resources", "0", "0", 6)); // always 0
-    row.push(new Column("tot_ass_res", tot_ass_res, "0", 6)); // total, but we only use 1 field
+    row.push(new Column("tot_ass_res", cleanMoney(tot_ass_res), "0", 6)); // total, but we only use 1 field
 
     row.push(new Column("fs_cont_exempt_indig", indigenous_flag, " ", 1));
     row.push(new Column("fs_cont_exempt_pd", app.is_disabled ? "Y" : "N", " ", 1));
@@ -362,40 +357,42 @@ export class NarsV17_2ReportingService {
     row.push(new Column("parental_cont_review_flag", `N`, " ", 1)); // always N
     row.push(new Column("frspouse_cont_review_flag", `N`, " ", 1)); // always N
 
-    row.push(new Column("stud_sp_cost_living_allow", stud_sp_cost_living_allow, "0", 6));
-    row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 6));
+    row.push(new Column("stud_sp_cost_living_allow", cleanMoney(stud_sp_cost_living_allow), "0", 6));
+    row.push(new Column("stud_sp_cost_tuition", cleanMoney(app.tuition_estimate), "0", 6));
     row.push(new Column("stud_sp_cost_comp_fee", "0", "0", 6)); // always 0
-    row.push(new Column("stud_sp_cost_computers", stud_sp_cost_computers, "0", 6));
-    row.push(new Column("stud_sp_cost_allow_book", stud_sp_cost_allow_book ?? 0, "0", 6));
-    row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 6));
-    row.push(new Column("stud_sp_cost_ret_transp", stud_sp_cost_ret_transp, "0", 6));
-    row.push(new Column("stud_sp_cost_other_trans", app.x_trans_total + app.relocation_total, "0", 6));
-    row.push(new Column("stud_sp_cost_other", stud_sp_cost_other, "0", 6)); // catch-all bucket
-    row.push(new Column("tot_ass_cost", totalCosts, "0", 6));
+    row.push(new Column("stud_sp_cost_computers", cleanMoney(stud_sp_cost_computers), "0", 6));
+    row.push(new Column("stud_sp_cost_allow_book", cleanMoney(stud_sp_cost_allow_book) ?? 0, "0", 6));
+    row.push(
+      new Column("stud_sp_cost_allow_child", cleanMoney(Math.ceil(app.day_care_actual * app.study_months)), "0", 6)
+    );
+    row.push(new Column("stud_sp_cost_ret_transp", cleanMoney(stud_sp_cost_ret_transp), "0", 6));
+    row.push(new Column("stud_sp_cost_other_trans", cleanMoney(app.x_trans_total + app.relocation_total), "0", 6));
+    row.push(new Column("stud_sp_cost_other", cleanMoney(stud_sp_cost_other), "0", 6)); // catch-all bucket
+    row.push(new Column("tot_ass_cost", cleanMoney(totalCosts), "0", 6));
 
-    row.push(new Column("req_need", Math.round(req_need), "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multiples of 300/week)
-    row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
-    row.push(new Column("ass_csl_bef_overa", (Math.min(52, app.study_weeks) ?? 1) * 300, "0", 6)); // sum of loan disbursements for this assessment
+    row.push(new Column("req_need", cleanMoney(req_need), "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multiples of 300/week)
+    row.push(new Column("tot_calc_need", cleanMoney(totalCosts - tot_ass_res), "+", 7)); // calculated need in award tab
+    row.push(new Column("ass_csl_bef_overa", cleanMoney(csl_ft || 0), "0", 6)); // sum of loan disbursements for this assessment (* should have overawards ignored)
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
     row.push(new Column("csl_over_award_recovered", "0", "0", 6)); // this is complicated by the over award change reason, 0 for now
     row.push(new Column("psl_over_award_recovered", "0", "0", 6)); // always 0
-    row.push(new Column("auth_csl_amt", (Math.min(52, app.study_weeks) ?? 1) * 300, "0", 6));
+    row.push(new Column("auth_csl_amt", cleanMoney((Math.min(52, app.study_weeks) ?? 1) * 300), "0", 6));
     row.push(new Column("auth_psl_amt", "0", "0", 6)); // always 0
 
-    row.push(new Column("csg_ft", csg_ft, "0", 6));
-    row.push(new Column("csg_ftdep", csg_ftdep, "0", 6));
-    row.push(new Column("csg_d", csg_d, "0", 6));
-    row.push(new Column("csg_dse", csg_dse, "0", 6));
+    row.push(new Column("csg_ft", cleanMoney(csg_ft), "0", 6));
+    row.push(new Column("csg_ftdep", cleanMoney(csg_ftdep), "0", 6));
+    row.push(new Column("csg_d", cleanMoney(csg_d), "0", 6));
+    row.push(new Column("csg_dse", cleanMoney(csg_dse), "0", 6));
 
-    row.push(new Column("prov_grant_burs_schol_amt", provGrants, "0", 6));
+    row.push(new Column("prov_grant_burs_schol_amt", cleanMoney(provGrants), "0", 6));
     row.push(new Column("prov_unmet_need_grant_auth_amt", "0", "0", 6)); // likely not relevant
     row.push(new Column("other_prov_assist", "0", "0", 6)); // always 0
 
-    row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + provGrants, "0", 6));
+    row.push(new Column("tot_assist", cleanMoney(csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + provGrants), "0", 6));
     row.push(
       new Column(
         "unmet_need",
-        totalCosts - tot_ass_res - (csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + provGrants) + csg_dse,
+        cleanMoney(totalCosts - tot_ass_res - (csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + provGrants) + csg_dse),
         "0",
         7
       )
@@ -587,4 +584,12 @@ export async function calculateFamilySize(
   }
 
   return family;
+}
+
+export function cleanMoney(value: any, emptyValue: string = "") {
+  if (isNil(value) || isUndefined(value)) {
+    return emptyValue;
+  }
+
+  return Math.round(parseFloat(`${value}`));
 }

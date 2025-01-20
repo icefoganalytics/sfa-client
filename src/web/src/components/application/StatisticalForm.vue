@@ -232,7 +232,6 @@ export default {
     updateView(application) {
       if (application.is_disabled && application.is_perm_disabled) this.disability = "Permanent";
       else if (application.is_disabled && !application.is_perm_disabled) this.disability = "Persistent";
-      else if (application.is_disabled && !application.is_perm_disabled) this.disability = "Permanent";
       else this.disability = "None";
     },
 
