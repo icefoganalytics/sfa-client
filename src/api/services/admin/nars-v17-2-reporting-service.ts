@@ -262,7 +262,10 @@ export class NarsV17_2ReportingService {
     let parent_cont = a2?.parent_contribution_override ?? a2?.parent_contribution ?? 0;
     let tot_ass_res = a2?.total_contribution ?? 0;
 
-    if (Number.isNaN(tot_ass_res)) console.log("STUDENT", tot_ass_res, appId);
+    if (Number.isNaN(tot_ass_res)) {
+      console.log("STUDENT", tot_ass_res, appId);
+      tot_ass_res = 0;
+    }
 
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
@@ -381,7 +384,7 @@ export class NarsV17_2ReportingService {
     row.push(new Column("tot_ass_cost", cleanMoney(totalCosts), "0", 6));
 
     row.push(new Column("req_need", cleanMoney(req_need), "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multiples of 300/week)
-    row.push(new Column("tot_calc_need", cleanMoney(totalCosts - tot_ass_res), "+", 7)); // calculated need in award tab
+    row.push(new Column("tot_calc_need", cleanMoney(parseInt(`${totalCosts}`) - parseInt(`${tot_ass_res}`)), "+", 7)); // calculated need in award tab
     row.push(new Column("ass_csl_bef_overa", cleanMoney(csl_ft || 0), "0", 6)); // sum of loan disbursements for this assessment (* should have overawards ignored)
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
     row.push(new Column("csl_over_award_recovered", "0", "0", 6)); // this is complicated by the over award change reason, 0 for now
@@ -468,8 +471,15 @@ export class Column {
     this.length = length;
     //this.output = `${value}`;
 
-    if (fill == "+") this.output = "+" + this.rawValue.padStart(length - 1, "0").substring(0, length);
-    else if (fill == "0")
+    if (fill == "+") {
+      if (`${this.rawValue}`.startsWith("-")) {
+        this.output = this.rawValue.padEnd(length, " ").substring(0, length);
+      } else if (`${this.rawValue}` == "0") {
+        this.output = " 0".padEnd(length, " ").substring(0, length);
+      } else {
+        this.output = "+" + this.rawValue.padEnd(length, " ").substring(0, length);
+      }
+    } else if (fill == "0")
       this.output =
         this.rawValue.length == 0
           ? ".".padEnd(length, " ").substring(0, length)
