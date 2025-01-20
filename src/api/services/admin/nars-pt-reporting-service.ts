@@ -219,7 +219,7 @@ export class NarsPTReportingService {
 
     row.push(new Column("ei_code", app.institution_code, " ", 4));
     row.push(new Column("pos", app.field_program_code, " ", 2));
-    row.push(new Column("pos2", "", " ", 25)); // send blank
+    row.push(new Column("pos2", ".", " ", 25)); // send period
     row.push(new Column("program_type", program_type, " ", 1));
     row.push(new Column("pscd", moment.utc(app.classes_start_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("psed", moment.utc(app.classes_end_date).format("YYYYMMDD"), " ", 8));
